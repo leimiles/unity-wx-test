@@ -71,3 +71,16 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+TextToolDatas
+Assets/AutoStreamingData
+CustomCloudAssets
+Packages/packages-lock.json
+Assets/CustomSearch.txt
+Assets/CustomSearch.txt.meta
+minigame
+webgl
+Assets/AddressableAssetsData
+Assets/AddressableAssetsData.meta
+Assets/WX-WASM-SDK-V2/Editor/MiniGameConfig.asset
+Assets/MiniGameHostConfig.asset.meta
+.vscode
