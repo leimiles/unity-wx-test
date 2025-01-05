@@ -50,8 +50,8 @@ Varyings Vert(Attributes input)
     float4 pos = input.positionOS;
     float2 uv  = input.uv;
 #else
-    float4 pos = GetFullScreenTriangleVertexPosition(input.vertexID);
-    float2 uv  = GetFullScreenTriangleTexCoord(input.vertexID);
+    float4 pos = GetFullScreenTriangleVertexPositionWX(input.vertexID);
+    float2 uv  = GetFullScreenTriangleTexCoordWX(input.vertexID);
 #endif
 
     output.positionCS = pos;

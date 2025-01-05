@@ -1529,6 +1529,17 @@ float2 GetFullScreenTriangleTexCoord(uint vertexID)
 #endif
 }
 
+// this method is used to avoid complex casting and bit operations on WX dev
+float2 GetFullScreenTriangleTexCoordWX(uint vertexID)
+{
+    #if UNITY_UV_STARTS_AT_TOP
+        // 顶点 ID 到 UV 坐标的直接映射
+        return float2((vertexID % 2) * 2.0, 1.0 - (vertexID / 2) * 2.0);
+    #else
+        return float2((vertexID % 2) * 2.0, (vertexID / 2) * 2.0);
+    #endif
+}
+
 float4 GetFullScreenTriangleVertexPosition(uint vertexID, float z = UNITY_NEAR_CLIP_VALUE)
 {
     // note: the triangle vertex position coordinates are x2 so the returned UV coordinates are in range -1, 1 on the screen.
@@ -1540,9 +1551,21 @@ float4 GetFullScreenTriangleVertexPosition(uint vertexID, float z = UNITY_NEAR_C
     return pos;
 }
 
+// this method is used to avoid complex casting and bit operations on WX dev
+float4 GetFullScreenTriangleVertexPositionWX(uint vertexID, float z = UNITY_NEAR_CLIP_VALUE)
+{
+    // 替换位运算的逻辑
+    float2 uv = float2((vertexID % 2) * 2.0, (vertexID / 2) * 2.0);
+    float4 pos = float4(uv * 2.0 - 1.0, z, 1.0);
+
+    #ifdef UNITY_PRETRANSFORM_TO_DISPLAY_ORIENTATION
+        pos = ApplyPretransformRotation(pos);
+    #endif
+
+    return pos;
+}
 
 // draw procedural with 2 triangles has index order (0,1,2)  (0,2,3)
-
 // 0 - 0,0
 // 1 - 0,1
 // 2 - 1,1
