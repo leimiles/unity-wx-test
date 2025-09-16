@@ -57,6 +57,8 @@ const unityNamespace = {
     isProfilingBuild: $Is_Profiling_Build,
     // 预留的堆内存
     unityHeapReservedMemory: $UnityHeapReservedMemory,
+    // 是否向Perfstream上报数据
+    sendData2PerfStream: $SEND_DATA_TO_PERF_STREAM,
 };
 // 最佳实践检测配置
 unityNamespace.monitorConfig = {
@@ -113,6 +115,7 @@ GameGlobal.WebAssembly = GameGlobal.WXWebAssembly;
 GameGlobal.unityNamespace = GameGlobal.unityNamespace || unityNamespace;
 GameGlobal.realtimeLogManager = wx.getRealtimeLogManager();
 GameGlobal.logmanager = wx.getLogManager({ level: 0 });
+GameGlobal.disableMultiTouch = $DISABLE_MULTI_TOUCH;
 // 提前监听错误并打日志
 function bindGloblException() {
     // 默认上报小游戏实时日志与用户反馈日志(所有error日志+小程序框架异常)
