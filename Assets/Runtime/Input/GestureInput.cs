@@ -9,13 +9,16 @@ using EnhancedTouchPhase = UnityEngine.InputSystem.TouchPhase;
 [DisallowMultipleComponent]
 public class GestureInput : MonoBehaviour
 {
-    float maxTapTime = 0.3f;
-    float maxTapMoveDistance = 10f;
-    bool isTouching = false;
-    float touchStartTime;
-    Vector2 touchStartPosition;
 
-    System.Action<Vector2> onTap;
+    // 单击
+    public System.Action<Vector2> onTapEvent;
+
+    // 双击
+    public System.Action<Vector2> onDoubleTapEvent;
+    [SerializeField] float doubleTapInterval = 0.3f;
+    [SerializeField] float doubleTapMoveDistance = 50f;
+    float lastTapTime = -1f;
+    Vector2 lastTapPosition;
 
     IA_Game input;
 
@@ -40,10 +43,23 @@ public class GestureInput : MonoBehaviour
 
     void OnTapPerformed(InputAction.CallbackContext context)
     {
-        Debug.Log("OnTapPerformed");
+        var currentTapPosition = context.ReadValue<Vector2>();
+        //Debug.Log($"OnTapPerformed: {touchPosition}");
+        float currentTime = Time.time;
 
-        var touchPosition = context.ReadValue<Vector2>();
-        Debug.Log($"OnTapPerformed: {touchPosition}");
+        if (currentTime - lastTapTime < doubleTapInterval && Vector2.Distance(currentTapPosition, lastTapPosition) < doubleTapMoveDistance)
+        {
+            Debug.Log("Double Tap");
+            onDoubleTapEvent?.Invoke(currentTapPosition);
+            lastTapTime = -1f;
+        }
+        else
+        {
+            Debug.Log("Single Tap");
+            onTapEvent?.Invoke(currentTapPosition);
+            lastTapTime = currentTime;
+            lastTapPosition = currentTapPosition;
+        }
 
     }
 
