@@ -42,6 +42,7 @@ public class GestureInput : MonoBehaviour
         input.Gesture.Tap.performed += OnTapPerformed;
         input.Gesture.Hold.performed += OnHoldPerformed;
         input.Gesture.Hold.canceled += OnHoldCanceled;
+        input.Gesture.Slide.performed += OnSlidePerformed;
     }
 
     void OnDisable()
@@ -51,6 +52,12 @@ public class GestureInput : MonoBehaviour
         input.Gesture.Tap.performed -= OnTapPerformed;
         input.Gesture.Hold.performed -= OnHoldPerformed;
         input.Gesture.Hold.canceled -= OnHoldCanceled;
+        input.Gesture.Slide.performed -= OnSlidePerformed;
+    }
+
+    void OnSlidePerformed(InputAction.CallbackContext context)
+    {
+        Debug.Log("Slide Performed");
     }
 
     void OnTapPerformed(InputAction.CallbackContext context)

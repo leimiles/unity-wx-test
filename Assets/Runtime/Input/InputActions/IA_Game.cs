@@ -109,6 +109,15 @@ public partial class @IA_Game: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": ""Hold"",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Slide"",
+                    ""type"": ""Value"",
+                    ""id"": ""393eb8fe-9121-45b9-b739-b2a25fbe51bd"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
                 }
             ],
             ""bindings"": [
@@ -155,6 +164,17 @@ public partial class @IA_Game: IInputActionCollection2, IDisposable
                     ""action"": ""Hold"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""52bf7e0b-c980-441d-ab56-83750ab2c092"",
+                    ""path"": ""<Touchscreen>/primaryTouch/delta"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Slide"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -165,6 +185,7 @@ public partial class @IA_Game: IInputActionCollection2, IDisposable
         m_Gesture = asset.FindActionMap("Gesture", throwIfNotFound: true);
         m_Gesture_Tap = m_Gesture.FindAction("Tap", throwIfNotFound: true);
         m_Gesture_Hold = m_Gesture.FindAction("Hold", throwIfNotFound: true);
+        m_Gesture_Slide = m_Gesture.FindAction("Slide", throwIfNotFound: true);
     }
 
     ~@IA_Game()
@@ -247,6 +268,7 @@ public partial class @IA_Game: IInputActionCollection2, IDisposable
     private List<IGestureActions> m_GestureActionsCallbackInterfaces = new List<IGestureActions>();
     private readonly InputAction m_Gesture_Tap;
     private readonly InputAction m_Gesture_Hold;
+    private readonly InputAction m_Gesture_Slide;
     /// <summary>
     /// Provides access to input actions defined in input action map "Gesture".
     /// </summary>
@@ -266,6 +288,10 @@ public partial class @IA_Game: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Gesture/Hold".
         /// </summary>
         public InputAction @Hold => m_Wrapper.m_Gesture_Hold;
+        /// <summary>
+        /// Provides access to the underlying input action "Gesture/Slide".
+        /// </summary>
+        public InputAction @Slide => m_Wrapper.m_Gesture_Slide;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -298,6 +324,9 @@ public partial class @IA_Game: IInputActionCollection2, IDisposable
             @Hold.started += instance.OnHold;
             @Hold.performed += instance.OnHold;
             @Hold.canceled += instance.OnHold;
+            @Slide.started += instance.OnSlide;
+            @Slide.performed += instance.OnSlide;
+            @Slide.canceled += instance.OnSlide;
         }
 
         /// <summary>
@@ -315,6 +344,9 @@ public partial class @IA_Game: IInputActionCollection2, IDisposable
             @Hold.started -= instance.OnHold;
             @Hold.performed -= instance.OnHold;
             @Hold.canceled -= instance.OnHold;
+            @Slide.started -= instance.OnSlide;
+            @Slide.performed -= instance.OnSlide;
+            @Slide.canceled -= instance.OnSlide;
         }
 
         /// <summary>
@@ -369,5 +401,12 @@ public partial class @IA_Game: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnHold(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Slide" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSlide(InputAction.CallbackContext context);
     }
 }
