@@ -16,7 +16,7 @@ public class MovedIntoScene : Editor
     static float colDistance = 10f; // 列距，z 轴向的间隔值，x 轴不变，y 轴不变
 
     // 在工程面板的右键菜单中添加一个按钮，用户可以通过右键菜单，选择 Utils/ Moved Into Scene 来执行该功能
-    [MenuItem("Assets/Utils/Moved Into Scene", false, 100)]
+    [MenuItem("Assets/M_Utils/Moved Into Scene", false, 100)]
     static void InstantiateSelectedPrefabs()
     {
         // 得到当前所选的所有对象
