@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.EnhancedTouch;
 using Touch = UnityEngine.InputSystem.EnhancedTouch.Touch;
-using EnhancedTouchPhase = UnityEngine.InputSystem.TouchPhase;
 
 [DisallowMultipleComponent]
 public class GestureInput : MonoBehaviour
@@ -20,6 +19,10 @@ public class GestureInput : MonoBehaviour
     float lastTapTime = -1f;
     Vector2 lastTapPosition;
 
+    // 长按
+    public System.Action<Vector2> onHoldingEvent;
+    bool isHolding = false;
+
     IA_Game input;
 
     void Awake()
@@ -27,11 +30,18 @@ public class GestureInput : MonoBehaviour
         input = new IA_Game();
     }
 
+    // void Start()
+    // {
+    //     onHoldingEvent += Fun;
+    // }
+
     void OnEnable()
     {
         EnhancedTouchSupport.Enable();
         input.Gesture.Enable();
         input.Gesture.Tap.performed += OnTapPerformed;
+        input.Gesture.Hold.performed += OnHoldPerformed;
+        input.Gesture.Hold.canceled += OnHoldCanceled;
     }
 
     void OnDisable()
@@ -39,6 +49,8 @@ public class GestureInput : MonoBehaviour
         EnhancedTouchSupport.Disable();
         input.Gesture.Disable();
         input.Gesture.Tap.performed -= OnTapPerformed;
+        input.Gesture.Hold.performed -= OnHoldPerformed;
+        input.Gesture.Hold.canceled -= OnHoldCanceled;
     }
 
     void OnTapPerformed(InputAction.CallbackContext context)
@@ -62,6 +74,40 @@ public class GestureInput : MonoBehaviour
         }
 
     }
+
+    void OnHoldPerformed(InputAction.CallbackContext context)
+    {
+        Debug.Log("Hold Performed");
+        isHolding = true;
+    }
+
+    void OnHoldCanceled(InputAction.CallbackContext context)
+    {
+        Debug.Log("Hold Canceled");
+        isHolding = false;
+    }
+
+    void OnHoldingCallback(bool isHolding)
+    {
+        if (isHolding)
+        {
+            Debug.Log("Holding");
+            var pos = Touch.activeTouches[0].screenPosition;
+            onHoldingEvent?.Invoke(pos);
+        }
+    }
+
+    // void Fun(Vector2 pos)
+    // {
+    //     Debug.Log("Fun" + pos);
+    // }
+
+    void Update()
+    {
+        OnHoldingCallback(isHolding);
+    }
+
+
 
 
 }

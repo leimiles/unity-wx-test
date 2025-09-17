@@ -100,6 +100,15 @@ public partial class @IA_Game: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": ""Press"",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""Hold"",
+                    ""type"": ""Button"",
+                    ""id"": ""6d5c45cc-85f8-49e9-bbeb-37fea57a089d"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": ""Hold"",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -135,6 +144,17 @@ public partial class @IA_Game: IInputActionCollection2, IDisposable
                     ""action"": ""Tap"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""3d70bc9f-437d-42a8-a6e8-c0380dd2ebea"",
+                    ""path"": ""<Touchscreen>/Press"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Hold"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -144,6 +164,7 @@ public partial class @IA_Game: IInputActionCollection2, IDisposable
         // Gesture
         m_Gesture = asset.FindActionMap("Gesture", throwIfNotFound: true);
         m_Gesture_Tap = m_Gesture.FindAction("Tap", throwIfNotFound: true);
+        m_Gesture_Hold = m_Gesture.FindAction("Hold", throwIfNotFound: true);
     }
 
     ~@IA_Game()
@@ -225,6 +246,7 @@ public partial class @IA_Game: IInputActionCollection2, IDisposable
     private readonly InputActionMap m_Gesture;
     private List<IGestureActions> m_GestureActionsCallbackInterfaces = new List<IGestureActions>();
     private readonly InputAction m_Gesture_Tap;
+    private readonly InputAction m_Gesture_Hold;
     /// <summary>
     /// Provides access to input actions defined in input action map "Gesture".
     /// </summary>
@@ -240,6 +262,10 @@ public partial class @IA_Game: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Gesture/Tap".
         /// </summary>
         public InputAction @Tap => m_Wrapper.m_Gesture_Tap;
+        /// <summary>
+        /// Provides access to the underlying input action "Gesture/Hold".
+        /// </summary>
+        public InputAction @Hold => m_Wrapper.m_Gesture_Hold;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -269,6 +295,9 @@ public partial class @IA_Game: IInputActionCollection2, IDisposable
             @Tap.started += instance.OnTap;
             @Tap.performed += instance.OnTap;
             @Tap.canceled += instance.OnTap;
+            @Hold.started += instance.OnHold;
+            @Hold.performed += instance.OnHold;
+            @Hold.canceled += instance.OnHold;
         }
 
         /// <summary>
@@ -283,6 +312,9 @@ public partial class @IA_Game: IInputActionCollection2, IDisposable
             @Tap.started -= instance.OnTap;
             @Tap.performed -= instance.OnTap;
             @Tap.canceled -= instance.OnTap;
+            @Hold.started -= instance.OnHold;
+            @Hold.performed -= instance.OnHold;
+            @Hold.canceled -= instance.OnHold;
         }
 
         /// <summary>
@@ -330,5 +362,12 @@ public partial class @IA_Game: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnTap(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Hold" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnHold(InputAction.CallbackContext context);
     }
 }
