@@ -1,0 +1,57 @@
+{
+    "version": 1,
+    "name": "IA_Game",
+    "maps": [
+        {
+            "name": "Gesture",
+            "id": "c0a2cb0e-6855-47a5-9616-49e7fd88248f",
+            "actions": [
+                {
+                    "name": "Tap",
+                    "type": "Value",
+                    "id": "9569e248-322e-412b-a697-d6f065c8371e",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "Press",
+                    "initialStateCheck": true
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "One Modifier",
+                    "id": "7de618b9-e7ad-4494-9f3d-be2fa34e49b9",
+                    "path": "OneModifier",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Tap",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "modifier",
+                    "id": "72679a66-8f65-4031-ba1a-c0de6ec94dae",
+                    "path": "<Touchscreen>/primaryTouch/press",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Tap",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "binding",
+                    "id": "8dcd6610-c81d-458c-aeb5-483c7c71ddef",
+                    "path": "<Touchscreen>/primaryTouch/position",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Tap",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}
