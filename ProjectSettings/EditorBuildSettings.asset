@@ -6,6 +6,10 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/SampleScene.unity
-    guid: 99c9720ab356a0642a771bea13969a05
-  m_configObjects: {}
+    path: Assets/Arts/AllIn1VfxToolkit/CheckAllVFX2.unity
+    guid: 67a64f62be1c0dd4f934d225d8ef28d0
+  m_configObjects:
+    com.unity.input.settings: {fileID: 11400000, guid: 93abe2951453d5d44b6e6e5ef5139191,
+      type: 2}
+    com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 7e9c7f1ba140eae4c9a74f562bad4edf,
+      type: 3}
