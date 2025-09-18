@@ -58,6 +58,11 @@ public class GestureInput : MonoBehaviour
         input.Gesture.Slide.performed -= OnSlidePerformed;
     }
 
+    void OnSlideCanceled(InputAction.CallbackContext context)
+    {
+        Debug.Log("Slide Canceled");
+    }
+
     void OnSlidePerformed(InputAction.CallbackContext context)
     {
         Debug.Log("Slide Performed");
