@@ -23,6 +23,9 @@ public class GestureInput : MonoBehaviour
     public System.Action<Vector2> onHoldingEvent;
     bool isHolding = false;
 
+    // 滑动
+    public System.Action<Vector2> onSlideEvent;
+
     IA_Game input;
 
     void Awake()
@@ -58,6 +61,8 @@ public class GestureInput : MonoBehaviour
     void OnSlidePerformed(InputAction.CallbackContext context)
     {
         Debug.Log("Slide Performed");
+        var currentSlidePosition = context.ReadValue<Vector2>();
+        onSlideEvent?.Invoke(currentSlidePosition);
     }
 
     void OnTapPerformed(InputAction.CallbackContext context)
