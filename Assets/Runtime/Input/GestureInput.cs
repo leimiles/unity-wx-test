@@ -58,7 +58,7 @@ public class GestureInput : MonoBehaviour
         if (Touch.activeTouches.Count != 1) return;
         // 滑动是一种特殊的 hold 操作，所以会将 isHolding 设置为 true
         isHolding = true;
-        Debug.Log("Slide Performed");
+        //Debug.Log("Slide Performed");
         onSlideEvent?.Invoke(Touch.activeTouches[0].screenPosition);
     }
 
@@ -70,13 +70,13 @@ public class GestureInput : MonoBehaviour
 
         if (currentTime - lastTapTime < doubleTapInterval && Vector2.Distance(currentTapPosition, lastTapPosition) < doubleTapMoveDistance)
         {
-            Debug.Log("Double Tap");
+            //Debug.Log("Double Tap");
             lastTapTime = -1f;
             onDoubleTapEvent?.Invoke(currentTapPosition);
         }
         else
         {
-            Debug.Log("Single Tap");
+            //Debug.Log("Single Tap");
             lastTapTime = currentTime;
             lastTapPosition = currentTapPosition;
             onTapEvent?.Invoke(currentTapPosition);
@@ -88,7 +88,7 @@ public class GestureInput : MonoBehaviour
     void OnHoldPerformed(InputAction.CallbackContext context)
     {
         if (Touch.activeTouches.Count != 1) return;
-        Debug.Log("Hold Performed");
+        //Debug.Log("Hold Performed");
         isHolding = true;
     }
 
@@ -96,7 +96,7 @@ public class GestureInput : MonoBehaviour
     void OnHoldCanceled(InputAction.CallbackContext context)
     {
         if (Touch.activeTouches.Count != 1 || !isHolding) return;
-        Debug.Log("Hold Canceled");
+        //Debug.Log("Hold Canceled");
         isHolding = false;
         onHoldingEndEvent?.Invoke(Touch.activeTouches[0].screenPosition);
     }
@@ -107,7 +107,7 @@ public class GestureInput : MonoBehaviour
         if (Touch.activeTouches.Count != 1) return;
         if (isHolding)
         {
-            Debug.Log("Holding");
+            //Debug.Log("Holding");
             var pos = Touch.activeTouches[0].screenPosition;
             onHoldingEvent?.Invoke(pos);
         }
