@@ -21,6 +21,7 @@ public class GestureInput : MonoBehaviour
 
     // 长按
     public System.Action<Vector2> onHoldingEvent;
+    public System.Action<Vector2> onHoldingEndEvent;
     bool isHolding = false;
 
     // 滑动
@@ -32,11 +33,6 @@ public class GestureInput : MonoBehaviour
     {
         input = new IA_Game();
     }
-
-    // void Start()
-    // {
-    //     onHoldingEvent += Fun;
-    // }
 
     void OnEnable()
     {
@@ -58,54 +54,59 @@ public class GestureInput : MonoBehaviour
         input.Gesture.Slide.performed -= OnSlidePerformed;
     }
 
-    void OnSlideCanceled(InputAction.CallbackContext context)
-    {
-        Debug.Log("Slide Canceled");
-    }
-
+    // 滑动时触发
     void OnSlidePerformed(InputAction.CallbackContext context)
     {
+        if (Touch.activeTouches.Count != 1) return;
+        // 滑动是一种特殊的 hold 操作，所以会将 isHolding 设置为 true
+        isHolding = true;
         Debug.Log("Slide Performed");
-        var currentSlidePosition = context.ReadValue<Vector2>();
-        onSlideEvent?.Invoke(currentSlidePosition);
+        onSlideEvent?.Invoke(Touch.activeTouches[0].screenPosition);
     }
 
+    // 根据条件触发单击或者双击，双击触发包含单击触发
     void OnTapPerformed(InputAction.CallbackContext context)
     {
         var currentTapPosition = context.ReadValue<Vector2>();
-        //Debug.Log($"OnTapPerformed: {touchPosition}");
         float currentTime = Time.time;
 
         if (currentTime - lastTapTime < doubleTapInterval && Vector2.Distance(currentTapPosition, lastTapPosition) < doubleTapMoveDistance)
         {
             Debug.Log("Double Tap");
-            onDoubleTapEvent?.Invoke(currentTapPosition);
             lastTapTime = -1f;
+            onDoubleTapEvent?.Invoke(currentTapPosition);
         }
         else
         {
             Debug.Log("Single Tap");
-            onTapEvent?.Invoke(currentTapPosition);
             lastTapTime = currentTime;
             lastTapPosition = currentTapPosition;
+            onTapEvent?.Invoke(currentTapPosition);
         }
 
     }
 
+    // 长按开始时触发
     void OnHoldPerformed(InputAction.CallbackContext context)
     {
+        if (Touch.activeTouches.Count != 1) return;
         Debug.Log("Hold Performed");
         isHolding = true;
     }
 
+    // 长按结束时触发
     void OnHoldCanceled(InputAction.CallbackContext context)
     {
+        if (Touch.activeTouches.Count != 1 || !isHolding) return;
         Debug.Log("Hold Canceled");
         isHolding = false;
+        onHoldingEndEvent?.Invoke(Touch.activeTouches[0].screenPosition);
     }
 
+    // 长按过程中触发，通过 update 表现出来
     void OnHoldingCallback(bool isHolding)
     {
+        if (Touch.activeTouches.Count != 1) return;
         if (isHolding)
         {
             Debug.Log("Holding");
@@ -113,11 +114,6 @@ public class GestureInput : MonoBehaviour
             onHoldingEvent?.Invoke(pos);
         }
     }
-
-    // void Fun(Vector2 pos)
-    // {
-    //     Debug.Log("Fun" + pos);
-    // }
 
     void Update()
     {
