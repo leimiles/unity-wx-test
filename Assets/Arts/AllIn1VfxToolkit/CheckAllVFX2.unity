@@ -491,7 +491,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2030377737
 Transform:
   m_ObjectHideFlags: 0
@@ -538,11 +538,11 @@ MonoBehaviour:
   - id: P01
     prefab: {fileID: 4154614278469163626, guid: feedc61f910de2d419531ce795bcdf3c,
       type: 3}
-    prewarm: 2
+    prewarm: 1
   - id: P02
     prefab: {fileID: 8837357219835783061, guid: 82aab579be11f004bbcf0d724c50b789,
       type: 3}
-    prewarm: 3
+    prewarm: 1
 --- !u!1001 &7865694824496645189
 PrefabInstance:
   m_ObjectHideFlags: 0

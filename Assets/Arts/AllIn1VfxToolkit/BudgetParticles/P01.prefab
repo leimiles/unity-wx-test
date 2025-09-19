@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 5498602689063900308}
   - component: {fileID: 8233296611251945125}
   - component: {fileID: 6871475759225077824}
-  - component: {fileID: 4154614278469163626}
+  - component: {fileID: 2779325792024890480}
   m_Layer: 0
   m_Name: P01
   m_TagString: Untagged
@@ -4831,7 +4831,7 @@ ParticleSystemRenderer:
   m_MeshWeighting2: 1
   m_MeshWeighting3: 1
   m_MaskInteraction: 0
---- !u!114 &4154614278469163626
+--- !u!114 &2779325792024890480
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -4840,14 +4840,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 6646343149285168750}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8834abae2ad619849b2f3b7222cdffda, type: 3}
+  m_Script: {fileID: 11500000, guid: 73998a663dfc80f4e84df8e9063d12b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ps: {fileID: 8233296611251945125}
-  priority: 2
-  canBePausedWhenStarved: 1
-  estimatedCostLOD0: 600
-  lodCount: 3
   rateMultipliers:
   - 1
   - 0.6
@@ -4856,5 +4851,3 @@ MonoBehaviour:
   - 1
   - 0.8
   - 0.6
-  disableTrailsAtLOD: 
-  lod: 0

@@ -27,8 +27,10 @@ public class ClickToSpawn : MonoBehaviour
 
         if (point != null)
         {
-            ParticlePool.I.Spawn("P01", point, Quaternion.identity);
+            //ParticlePool.I.Spawn("P01", point, Quaternion.identity);
             //Debug.Log($"OnTap: {point}");
+            var inst = Instantiate(spawnPrefab, point, Quaternion.identity);
+            inst.transform.SetParent(transform);
         }
     }
 
