@@ -12,6 +12,14 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class BudgetedParticle : MonoBehaviour
 {
+    // 估算单次在播成本（LOD0）。cost ≈ rateOverTime * lifetime + Σ(burstCounts）
+    [SerializeField] int estimatedCostLOD0 = 600;
+    // 各 LOD 的发射率倍率，如 [1, 0.6, 0.35, 0.2]
+    [SerializeField] float[] rateMultipliers = new float[] { 1f, 0.6f, 0.35f };
+
+    // 各 LOD 的寿命倍率，如 [1, 0.8, 0.6, 0.5]
+    [SerializeField] float[] lifeMultipliers = new float[] { 1f, 0.8f, 0.6f };
+
     ParticleSystem[] particleSystems;
     float[] baseRates;
     float[] baseLifetimes;
@@ -19,19 +27,6 @@ public class BudgetedParticle : MonoBehaviour
     ParticleSystem.MainModule[] mainModules;
     ParticleSystem.TrailModule[] trailModules;
     bool[] hasTrails;
-
-
-    // 各 LOD 的发射率倍率，如 [1, 0.6, 0.35, 0.2]
-    [SerializeField] float[] rateMultipliers = new float[] { 1f, 0.6f, 0.35f };
-
-    // 各 LOD 的寿命倍率，如 [1, 0.8, 0.6, 0.5]
-    [SerializeField] float[] lifeMultipliers = new float[] { 1f, 0.8f, 0.6f };
-
-
-    void Awake()
-    {
-        Init();
-    }
 
     void OnValidate()
     {
@@ -59,40 +54,14 @@ public class BudgetedParticle : MonoBehaviour
             hasTrails[i] = trailModules[i].enabled;
         }
 
+        estimatedCostLOD0 = CalculateBudgetCostForLOD(0);   // 估算单次在播成本（LOD0）
+
     }
 
     // 根据 LOD 级别应用配置
     public void ApplyLOD(int level)
     {
-        int lod = Mathf.Clamp(level, 0, Mathf.Min(rateMultipliers.Length, lifeMultipliers.Length) - 1);
-        float rm = rateMultipliers[lod];
-        float lm = lifeMultipliers[lod];
 
-        for (int i = 0; i < particleSystems.Length; i++)
-        {
-            // 修改发射率
-            var em = emissionModules[i];
-            var rate = em.rateOverTime;
-            rate.constant = baseRates[i] * rm;
-            em.rateOverTime = rate;
-
-            // 修改寿命
-            var main = particleSystems[i].main;
-            var lt = main.startLifetime;
-            lt.constant = baseLifetimes[i] * lm;
-            main.startLifetime = lt;
-
-            // 控制 Trails
-            if (hasTrails[i])
-            {
-                if (lod == 0)
-                    trailModules[i].enabled = true;  // 保持原始状态
-                else
-                    trailModules[i].enabled = false; // 低LOD关闭
-            }
-        }
-
-        Debug.Log($"[BudgetedParticle] {name} switched to LOD{lod}, cost≈{CalculateBudgetCostForLOD(lod)}");
     }
 
 
