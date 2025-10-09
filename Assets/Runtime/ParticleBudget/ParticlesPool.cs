@@ -5,4 +5,5 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class ParticlesPool : MonoBehaviour
 {
+
 }

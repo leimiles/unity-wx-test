@@ -5,20 +5,46 @@ using UnityEngine;
 
 /// <summary>
 /// 明确自己要消耗多少预算
-/// 支持 LOD
+/// 根据全局预算，自动进行 LOD 升降级
 /// 响应全局预算管理器
 /// 生命周期结束时的自动回收
 /// </summary>
 [DisallowMultipleComponent]
 public class BudgetedParticle : MonoBehaviour
 {
-    // 估算单次在播成本（LOD0）。cost ≈ rateOverTime * lifetime + Σ(burstCounts）
-    [SerializeField] int estimatedCostLOD0 = 600;
-    // 各 LOD 的发射率倍率，如 [1, 0.6, 0.35, 0.2]
-    [SerializeField] float[] rateMultipliers = new float[] { 1f, 0.6f, 0.35f };
 
-    // 各 LOD 的寿命倍率，如 [1, 0.8, 0.6, 0.5]
+    /// <summary>
+    /// 基础优先级，降级时 Low 优先，升级时 High 优先
+    /// </summary>
+    enum VFXPriority
+    {
+        Low,
+        Normal,
+        High
+    }
+
+    /// <summary>
+    /// 基础类型，
+    /// </summary>
+    enum VFXType
+    {
+        UI,
+        Env,
+        Character,
+        Battle,
+    }
+
+    [Header("预算配置")]
+    [SerializeField] int estimatedCostLOD0 = 600;
+    [SerializeField] VFXPriority particlePriority = VFXPriority.Normal;
+    [SerializeField] VFXType particleType = VFXType.Env;
+
+    int CurrentCost { get; set; }
+
+
+    [SerializeField] float[] rateMultipliers = new float[] { 1f, 0.6f, 0.35f };
     [SerializeField] float[] lifeMultipliers = new float[] { 1f, 0.8f, 0.6f };
+
 
     ParticleSystem[] particleSystems;
     float[] baseRates;
@@ -58,12 +84,14 @@ public class BudgetedParticle : MonoBehaviour
 
     }
 
-    // 根据 LOD 级别应用配置
     public void ApplyLOD(int level)
     {
 
     }
 
+    public void SetCurrentCost(int cost)
+    {
+    }
 
     enum CurveEvalStrategy { Average, Max, End }
 
