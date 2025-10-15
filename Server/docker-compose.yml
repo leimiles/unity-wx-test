@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  unity-webgl:
+    build: .
+    ports:
+      - "8080:80"
+    volumes:
+      - ./WebGLBuild:/usr/share/nginx/html
+    restart: unless-stopped
+    environment:
+      - NGINX_HOST=localhost
+      - NGINX_PORT=80

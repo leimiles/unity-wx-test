@@ -1,0 +1,25 @@
+{
+  "name": "unity-webgl-server",
+  "version": "1.0.0",
+  "description": "Unity WebGL 运行环境服务器",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "build": "echo '请先使用Unity构建WebGL版本'",
+    "docker:build": "docker build -t unity-webgl .",
+    "docker:run": "docker run -p 8080:80 unity-webgl",
+    "docker:compose": "docker-compose up -d"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "compression": "^1.7.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": ["unity", "webgl", "server"],
+  "author": "Your Name",
+  "license": "MIT"
+}
