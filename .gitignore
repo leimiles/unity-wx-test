@@ -88,3 +88,4 @@ Bundles
 Assets/AssetGraph
 Assets/AssetGraph.meta
 Server/node_modules
+Server/WebGLBuild
