@@ -59,8 +59,8 @@ app.get('/', (req, res) => {
 
 // 健康检查端点
 app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
+  res.json({
+    status: 'ok',
     timestamp: new Date().toISOString(),
     uptime: process.uptime()
   });
