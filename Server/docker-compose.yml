@@ -2,11 +2,14 @@ version: '3.8'
 
 services:
   unity-webgl:
-    build: .
+    build: 
+      context: .
+      args:
+        WEBGL_BUILD_PATH: ${WEBGL_BUILD_PATH:-WebGLBuild}
     ports:
       - "8080:80"
     volumes:
-      - ./WebGLBuild:/usr/share/nginx/html
+      - ./${WEBGL_BUILD_PATH:-WebGLBuild}:/usr/share/nginx/html
     restart: unless-stopped
     environment:
       - NGINX_HOST=localhost
