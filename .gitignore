@@ -89,3 +89,5 @@ Assets/AssetGraph
 Assets/AssetGraph.meta
 Server/node_modules
 Server/WebGLBuild
+WebGLBuilds
+Server/.env

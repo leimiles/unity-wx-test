@@ -122,7 +122,7 @@ public partial class @IA_Game: IInputActionCollection2, IDisposable
             ],
             ""bindings"": [
                 {
-                    ""name"": ""One Modifier"",
+                    ""name"": ""Touch"",
                     ""id"": ""7de618b9-e7ad-4494-9f3d-be2fa34e49b9"",
                     ""path"": ""OneModifier(modifiersOrder=1)"",
                     ""interactions"": """",
@@ -147,6 +147,39 @@ public partial class @IA_Game: IInputActionCollection2, IDisposable
                     ""name"": ""binding"",
                     ""id"": ""8dcd6610-c81d-458c-aeb5-483c7c71ddef"",
                     ""path"": ""<Touchscreen>/primaryTouch/position"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Tap"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""Mouse"",
+                    ""id"": ""40266f9f-601e-41cc-b5fb-f8e0156c130b"",
+                    ""path"": ""OneModifier(modifiersOrder=1)"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Tap"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""modifier"",
+                    ""id"": ""f6ef107a-558f-45aa-9e9e-b39bbc0e76e1"",
+                    ""path"": ""<Mouse>/press"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Tap"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""binding"",
+                    ""id"": ""eca686ab-9abe-4b79-97f8-6e82d4e61965"",
+                    ""path"": ""<Mouse>/position"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
