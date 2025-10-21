@@ -472,12 +472,47 @@ PrefabInstance:
     - target: {fileID: 995776295133563821, guid: 3aa336fffa0ce46518e6567654edc3ea,
         type: 3}
       propertyPath: m_Name
-      value: Button-Sign-Up
+      value: Button-Log-In
+      objectReference: {fileID: 0}
+    - target: {fileID: 995776295133563823, guid: 3aa336fffa0ce46518e6567654edc3ea,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 995776295133563823, guid: 3aa336fffa0ce46518e6567654edc3ea,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 995776295133563823, guid: 3aa336fffa0ce46518e6567654edc3ea,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 721407108}
+    - target: {fileID: 995776295133563823, guid: 3aa336fffa0ce46518e6567654edc3ea,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 995776295133563823, guid: 3aa336fffa0ce46518e6567654edc3ea,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: OpenPopup
+      objectReference: {fileID: 0}
+    - target: {fileID: 995776295133563823, guid: 3aa336fffa0ce46518e6567654edc3ea,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: Ricimi.PopupOpener, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 995776295133563823, guid: 3aa336fffa0ce46518e6567654edc3ea,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
     - target: {fileID: 8756733072901453254, guid: 3aa336fffa0ce46518e6567654edc3ea,
         type: 3}
       propertyPath: m_text
-      value: Sign up
+      value: Log In
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -512,7 +547,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 24fd4eaa17e3e44c79bf1b6d380a4944, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  popupPrefab: {fileID: 0}
+  popupPrefab: {fileID: 2849468550887311162, guid: a7bbde36f32e7074cbfb89d458fac623,
+    type: 3}
 --- !u!1 &859448937
 GameObject:
   m_ObjectHideFlags: 0
@@ -627,12 +663,47 @@ PrefabInstance:
     - target: {fileID: 2660620628328194669, guid: 6f9621007d775495f9c8de66058392bc,
         type: 3}
       propertyPath: m_text
-      value: Login
+      value: Go
+      objectReference: {fileID: 0}
+    - target: {fileID: 5817510849166728196, guid: 6f9621007d775495f9c8de66058392bc,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5817510849166728196, guid: 6f9621007d775495f9c8de66058392bc,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5817510849166728196, guid: 6f9621007d775495f9c8de66058392bc,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1234184303}
+    - target: {fileID: 5817510849166728196, guid: 6f9621007d775495f9c8de66058392bc,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5817510849166728196, guid: 6f9621007d775495f9c8de66058392bc,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: PerformTransition
+      objectReference: {fileID: 0}
+    - target: {fileID: 5817510849166728196, guid: 6f9621007d775495f9c8de66058392bc,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: Ricimi.SceneTransition, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 5817510849166728196, guid: 6f9621007d775495f9c8de66058392bc,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
     - target: {fileID: 5817510849166728198, guid: 6f9621007d775495f9c8de66058392bc,
         type: 3}
       propertyPath: m_Name
-      value: Button-Log-In
+      value: Button-Go
       objectReference: {fileID: 0}
     - target: {fileID: 5817510849166728199, guid: 6f9621007d775495f9c8de66058392bc,
         type: 3}
@@ -789,10 +860,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 1234184302}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 24fd4eaa17e3e44c79bf1b6d380a4944, type: 3}
+  m_Script: {fileID: 11500000, guid: 29eb4a5a725ae4a07a39820fbbcc201d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  popupPrefab: {fileID: 0}
+  scene: Sausage
+  duration: 1
+  color: {r: 0.15294118, g: 0.16862746, b: 0.20392157, a: 1}
 --- !u!1001 &1237601291
 PrefabInstance:
   m_ObjectHideFlags: 0
