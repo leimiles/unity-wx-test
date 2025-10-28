@@ -6,14 +6,8 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/Init.unity
-    guid: 6d0228e9763bcf149aefc50303ef2997
-  - enabled: 1
-    path: Assets/Scenes/Projects.unity
-    guid: 99a04b0d69599094b8bbe379330c7f0c
-  - enabled: 1
-    path: Assets/Scenes/Sausage-Man.unity
-    guid: 6e65f33846094ab45bf52d0021939614
+    path: Assets/Scenes/Mini-Init.unity
+    guid: ba19396467256a74bbb5e579cd58ff52
   m_configObjects:
     com.unity.input.settings: {fileID: 11400000, guid: 93abe2951453d5d44b6e6e5ef5139191,
       type: 2}
