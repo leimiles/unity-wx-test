@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94b5c4b36e7839044875c988e031d154, type: 3}
+  m_Name: WXBuildSettings_Dev
+  m_EditorClassIdentifier: 
+  appId: wxc3fc029bfde9435b
+  cdnURL: https://a.unity.cn/client_api/v1/buckets/be845f55-2cfe-4e08-87e9-1b8162181a67/release_by_badge/dev_01_h/content
+  appName: "\u6731\u9EA6\u5386\u9669\u8BB0"
+  firstBundleLoadingMethod: 0
+  firstBundleCompress: 1
+  preloadWXFont: 0
+  WXMultiTouchForbidden: 1
+  devbuild: 1
+  autoConnnectProfiler: 1
+  il2CppOptimization: 1
+  profilingFunc: 0
+  profilingMemory: 0
+  webGL2: 1
+  iOSPerformancePlus: 1
+  emscriptenGLX: 1
+  clearStreamingAsset: 1
+  cleanWebGLBuild: 0
+  firstBundleOptimization: 1
+  adaptedScreenSize: 1
+  showOptTips: 0
+  showPerfPanel: 1
+  showRenderingLog: 0
+  brotliCompress: 1
