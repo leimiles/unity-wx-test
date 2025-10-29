@@ -826,7 +826,11 @@ PlayerSettings:
   webGLMemoryGeometricGrowthCap: 96
   webGLPowerPreference: 2
   scriptingDefineSymbols:
-    WebGL: WX_PERFORMANCE_MODE
+    Android: UNITY_UOS_SECURITY
+    Server: UNITY_UOS_SECURITY
+    Standalone: UNITY_UOS_SECURITY
+    WebGL: WX_PERFORMANCE_MODE;UNITY_UOS_SECURITY;UNITY_WEIXINMINIGAME;UOS_WEIXINMINIGAME
+    iPhone: UNITY_UOS_SECURITY
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:
