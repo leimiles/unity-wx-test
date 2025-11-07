@@ -17,4 +17,9 @@ public class DataUnit<T> : MonoBehaviour, IDisposable
         Debug.Log($"OnDestroy {typeof(T).Name}");
         Dispose();
     }
+
+    public void ShowUnit()
+    {
+        Debug.Log("将资源渲染到屏幕上");
+    }
 }
