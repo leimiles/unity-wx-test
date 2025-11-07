@@ -240,6 +240,7 @@ GameObject:
   - component: {fileID: 1275692895434191618}
   - component: {fileID: 4467156580832821232}
   - component: {fileID: 2434072380451823616}
+  - component: {fileID: 7976990149957095843}
   m_Layer: 5
   m_Name: VFX02
   m_TagString: Untagged
@@ -364,9 +365,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 4467156580832821232}
-        m_TargetAssemblyTypeName: UltimateClean.InfoPopupOpener, Assembly-CSharp
-        m_MethodName: OpenPopup
+      - m_Target: {fileID: 7976990149957095843}
+        m_TargetAssemblyTypeName: DataUnit`1[[VFXUnit, Assembly-CSharp
+        m_MethodName: ShowUnit
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -431,6 +432,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tooltip: {fileID: 731841037340885534}
   fadeTime: 0.1
+--- !u!114 &7976990149957095843
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8017389690918257301}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1e09f85ca3cda542a24515d3cabb384, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &2062693032768898838
 PrefabInstance:
   m_ObjectHideFlags: 0
