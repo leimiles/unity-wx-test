@@ -5,5 +5,8 @@ using WeChatWASM;
 
 public class Perf : MonoBehaviour
 {
-
+    void Start()
+    {
+        WX.ReportGameStart();
+    }
 }
