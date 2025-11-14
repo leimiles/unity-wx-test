@@ -131,7 +131,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 830131683}
-  - component: {fileID: 830131682}
+  - component: {fileID: 830131684}
   m_Layer: 0
   m_Name: Sample
   m_TagString: Untagged
@@ -139,27 +139,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &830131682
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 830131681}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 924d5d4fcb651ce49a639b0ba8b66203, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  fieldSize: 200
-  agentCount: 500
-  maxSpeed: 5
-  gap: 2
-  separationForce: 8
-  stopSpeedThreshold: 0.05
-  stuckTimeToStop: 1
-  unitPrefab: {fileID: 2743994999589193299, guid: af62fec67c4aec448b9bf6a9ddc43508,
-    type: 3}
 --- !u!4 &830131683
 Transform:
   m_ObjectHideFlags: 0
@@ -175,6 +154,27 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &830131684
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 830131681}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f72509c1bb16a4d4fa3d9d50bbd06c7f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fieldSize: 200
+  agentCount: 100
+  maxSpeed: 5
+  gap: 1
+  separationForce: 8
+  stopSpeedThreshold: 0.05
+  stuckTimeToStop: 1
+  unitPrefab: {fileID: 2743994999589193299, guid: af62fec67c4aec448b9bf6a9ddc43508,
+    type: 3}
 --- !u!1 &1174324011
 GameObject:
   m_ObjectHideFlags: 0
