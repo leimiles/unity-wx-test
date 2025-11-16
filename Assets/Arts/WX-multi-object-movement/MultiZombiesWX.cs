@@ -113,7 +113,7 @@ public class MultiZombiesWX : MonoBehaviour
         // 更新每个分布点的位置和速度
         for (int i = 0; i < agentCount; i++)
         {
-            float2 postion = positions[i];
+            float2 position = positions[i];
             float2 velocity = velocities[i];
 
 
@@ -124,12 +124,12 @@ public class MultiZombiesWX : MonoBehaviour
             }
 
             float2 target = targets[i];
-            float2 direction = target - postion;
+            float2 direction = target - position;
             float distance2 = math.lengthsq(direction);    // 平方距离，以避免开方运算
             float2 vDesired = float2.zero;
 
             // 到达目标时，停止或者重新分配目标
-            if (distance2 < sqrOfgap * 0.25f)   // distance2 要对比 (gap * 0.5) 的平方
+            if (distance2 < sqrOfgap * 0.25f)   // distance2 要与 (gap * 0.5) 的平方比较
             {
                 hasTarget[i] = false;
                 velocities[i] = float2.zero;
@@ -143,19 +143,20 @@ public class MultiZombiesWX : MonoBehaviour
             // 计算避让速度
             float2 vAvoid = float2.zero;
 
-            GetCell(postion, out int cellX, out int cellY);
+            GetCell(position, out int cellX, out int cellY);
 
-            for (int ox = -1; ox <= 1; ox++)
+            // 计算每个格子和其周围的 8 个格子
+            for (int offsetX = -1; offsetX <= 1; offsetX++)
             {
-                int nx = cellX + ox;
-                if (nx < 0 || nx >= gridDim) continue;
+                int neighborX = cellX + offsetX;
+                if (neighborX < 0 || neighborX >= gridDim) continue;
 
-                for (int oy = -1; oy <= 1; oy++)
+                for (int offsetY = -1; offsetY <= 1; offsetY++)
                 {
-                    int ny = cellY + oy;
-                    if (ny < 0 || ny >= gridDim) continue;
+                    int neighborY = cellY + offsetY;
+                    if (neighborY < 0 || neighborY >= gridDim) continue;
 
-                    List<int> cellList = grid[nx, ny];
+                    List<int> cellList = grid[neighborX, neighborY];
                     for (int idx = 0; idx < cellList.Count; idx++)
                     {
                     }
