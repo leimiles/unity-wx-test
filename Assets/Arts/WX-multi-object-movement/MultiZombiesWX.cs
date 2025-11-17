@@ -11,10 +11,10 @@ public class MultiZombiesWX : MonoBehaviour
     [SerializeField] int agentCount = 100;  // 空间中用于计算的的分布点数量，即“僵尸”数量的代理
 
     [Header("运动参数")]
-    [SerializeField] float maxSpeed = 5f;   // 移动的最大速度
+    [Range(0.0f, 10f)][SerializeField] float maxSpeed = 5f;   // 移动的最大速度
     [Range(0.1f, 10f)][SerializeField] float gap = 1.0f;  // 分布点之间的最小间距，同时影响了网格单元的大小
     [SerializeField] float separationForce = 8f;    // 让分布点远离彼此的力的强度
-    [SerializeField] float stopSpeedThreshold = 0.05f;  // 当速度低于该值时，认为分布点已经停止
+    [Range(0.01f, 1.0f)][SerializeField] float stopSpeedThreshold = 0.05f;  // 当速度低于该值时，认为分布点已经停止
     [SerializeField] float stuckTimeToStop = 1.0f;  // 当速度低于阈值且持续时间超过该值时，认为分布点已经停止
 
     [Header("可视化")]
@@ -156,11 +156,42 @@ public class MultiZombiesWX : MonoBehaviour
                     int neighborY = cellY + offsetY;
                     if (neighborY < 0 || neighborY >= gridDim) continue;
 
+                    // 获取该单元格内的所有分布点索引
                     List<int> cellList = grid[neighborX, neighborY];
                     for (int idx = 0; idx < cellList.Count; idx++)
                     {
+                        int j = cellList[idx];
+                        if (j == i) continue; // 跳过自己
+
+                        float2 neighborPosition = positions[j];
+                        float2 toNeighborDir = neighborPosition - position;
+                        float distToNeighbor2 = math.lengthsq(toNeighborDir);   // 平方距离，以避免开方运算
+                        if (distToNeighbor2 >= sqrOfgap || distToNeighbor2 < 1e-6f) // 避免除以零
+                        {
+                            continue;
+                        }
+                        float d = math.sqrt(distToNeighbor2);   // 实际距离
+                        float pushForce = (gap - d) / gap;  // 归一化推力，靠的越近推力越大
+                        float2 pushDir = -toNeighborDir / d; // 归一化方向，指向自己
+                        vAvoid += pushDir * pushForce * separationForce;
                     }
                 }
+            }
+
+            float2 vNew = vDesired + vAvoid;
+
+            // 限制最大速度
+            float speed2 = math.lengthsq(vNew);  // 平方速度，以避免开方运算
+            if (speed2 > maxSpeed * maxSpeed)
+            {
+                float speed = math.sqrt(speed2);
+                vNew = vNew * (maxSpeed / math.sqrt(speed));
+                speed = maxSpeed;
+            }
+
+            if (speed2 < stopSpeedThreshold * stopSpeedThreshold && distance2 > sqrOfgap)
+            {
+
             }
 
         }
@@ -177,7 +208,7 @@ public class MultiZombiesWX : MonoBehaviour
             }
         }
 
-        // 将所有分布点重新分配到网格单元中，此处不考虑所有分布点都位于同一单元格的极端情况
+        // 将所有分布点重新分配到网格单元中，此处暂不考虑所有分布点都位于同一单元格的极端情况，后续处理
         for (int i = 0; i < agentCount; i++)
         {
             GetCell(positions[i], out int cellX, out int cellY);
