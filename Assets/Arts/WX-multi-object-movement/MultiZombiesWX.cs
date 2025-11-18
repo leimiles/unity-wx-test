@@ -108,7 +108,7 @@ public class MultiZombiesWX : MonoBehaviour
     {
         RebuildGrid();
 
-        float sqrOfgap = gap * gap;
+        float gap2 = gap * gap;
 
         // 更新每个分布点的位置和速度
         for (int i = 0; i < agentCount; i++)
@@ -129,7 +129,7 @@ public class MultiZombiesWX : MonoBehaviour
             float2 vDesired = float2.zero;
 
             // 到达目标时，停止或者重新分配目标
-            if (distance2 < sqrOfgap * 0.25f)   // distance2 要与 (gap * 0.5) 的平方比较
+            if (distance2 < gap2 * 0.25f)   // distance2 要与 (gap * 0.5) 的平方比较
             {
                 hasTarget[i] = false;
                 velocities[i] = float2.zero;
@@ -166,7 +166,7 @@ public class MultiZombiesWX : MonoBehaviour
                         float2 neighborPosition = positions[j];
                         float2 toNeighborDir = neighborPosition - position;
                         float distToNeighbor2 = math.lengthsq(toNeighborDir);   // 平方距离，以避免开方运算
-                        if (distToNeighbor2 >= sqrOfgap || distToNeighbor2 < 1e-6f) // 避免除以零
+                        if (distToNeighbor2 >= gap2 || distToNeighbor2 < 1e-6f) // 避免除以零
                         {
                             continue;
                         }
@@ -185,14 +185,31 @@ public class MultiZombiesWX : MonoBehaviour
             if (speed2 > maxSpeed * maxSpeed)
             {
                 float speed = math.sqrt(speed2);
-                vNew = vNew * (maxSpeed / math.sqrt(speed));
-                speed = maxSpeed;
+                vNew *= (maxSpeed / speed);
+                speed2 = maxSpeed * maxSpeed;
             }
 
-            if (speed2 < stopSpeedThreshold * stopSpeedThreshold && distance2 > sqrOfgap)
+            if (speed2 < stopSpeedThreshold * stopSpeedThreshold && distance2 > gap2)
             {
-
+                stuckTimers[i] += dt;
+                if (stuckTimers[i] >= stuckTimeToStop)
+                {
+                    hasTarget[i] = false;
+                    vNew = float2.zero;
+                }
             }
+            else
+            {
+                stuckTimers[i] = 0f;
+            }
+
+            position += vNew * dt;
+
+            position.x = math.clamp(position.x, -halfField, halfField);
+            position.y = math.clamp(position.y, -halfField, halfField);
+
+            positions[i] = position;
+            velocities[i] = vNew;
 
         }
     }
