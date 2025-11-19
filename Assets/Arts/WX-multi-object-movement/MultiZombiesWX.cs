@@ -104,6 +104,13 @@ public class MultiZombiesWX : MonoBehaviour
         stuckTimers[index] = 0f;
     }
 
+    void Update()
+    {
+        float dt = Time.deltaTime;
+        StepSimulation(dt);
+        SyncVisuals();
+    }
+
     void StepSimulation(float dt)
     {
         RebuildGrid();
@@ -185,13 +192,14 @@ public class MultiZombiesWX : MonoBehaviour
             if (speed2 > maxSpeed * maxSpeed)
             {
                 float speed = math.sqrt(speed2);
-                vNew *= (maxSpeed / speed);
+                vNew *= maxSpeed / speed;       // speed 大，缩放速度以限制最大速度
                 speed2 = maxSpeed * maxSpeed;
             }
 
+            // 检测是否被卡住
             if (speed2 < stopSpeedThreshold * stopSpeedThreshold && distance2 > gap2)
             {
-                stuckTimers[i] += dt;
+                stuckTimers[i] += dt;   // 增加卡住计时器
                 if (stuckTimers[i] >= stuckTimeToStop)
                 {
                     hasTarget[i] = false;
@@ -233,6 +241,27 @@ public class MultiZombiesWX : MonoBehaviour
         }
     }
 
+    // 同步可视化对象的位置
+    void SyncVisuals()
+    {
+        for (int i = 0; i < agentCount; i++)
+        {
+            if (visuals[i] == null)
+            {
+                continue;
+            }
+
+            visuals[i].position = new Vector3(positions[i].x, positions[i].y, 0f);
+            if (math.lengthsq(velocities[i]) > 1e-4f)
+            {
+                //float angle = Mathf.Atan2(velocities[i].y, velocities[i].x) * Mathf.Rad2Deg;
+                //visuals[i].rotation = Quaternion.Euler(0, 0, angle);
+                float rad = math.atan2(velocities[i].y, velocities[i].x);
+                visuals[i].rotation = quaternion.EulerXYZ(0, 0, rad);
+            }
+        }
+    }
+
     void GetCell(float2 position, out int cellX, out int cellY)
     {
         float x01 = (position.x + halfField) / fieldSize;       // 将 position.x 归一化到 0-1 范围
@@ -240,6 +269,12 @@ public class MultiZombiesWX : MonoBehaviour
 
         cellX = Mathf.Clamp(Mathf.FloorToInt(x01 * gridDim), 0, gridDim - 1);   // 求得 x 方向上的网格索引
         cellY = Mathf.Clamp(Mathf.FloorToInt(y01 * gridDim), 0, gridDim - 1);   // 求得 y 方向上的网格索引
+    }
+
+    void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireCube(Vector3.zero, new Vector3(fieldSize, fieldSize, 0));
     }
 
 }
