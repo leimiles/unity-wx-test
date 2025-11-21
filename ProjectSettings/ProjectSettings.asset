@@ -166,7 +166,7 @@ PlayerSettings:
   applicationIdentifier:
     Android: com.MileStudio.unity_wx_test
     Standalone: com.Unity-Technologies.com.unity.template.urp-blank
-    iPhone: com.Unity-Technologies.com.unity.template.urp-blank
+    iPhone: com.MileStudio.unity-wx-test
   buildNumber:
     Standalone: 0
     VisionOS: 0
