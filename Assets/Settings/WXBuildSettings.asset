@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: WXBuildSettings
   m_EditorClassIdentifier: 
   appId: wxc3fc029bfde9435b
-  cdnURL: https://a.unity.cn/client_api/v1/buckets/be845f55-2cfe-4e08-87e9-1b8162181a67/release_by_badge/dev_01_h/content
+  cdnURL: https://a.unity.cn/client_api/v1/buckets/be845f55-2cfe-4e08-87e9-1b8162181a67/content
   appName: "\u6731\u9EA6\u5386\u9669\u8BB0"
   firstBundleLoadingMethod: 0
   firstBundleCompress: 1
