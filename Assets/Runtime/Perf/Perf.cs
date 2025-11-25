@@ -8,7 +8,6 @@ using WeChatWASM;
 [DisallowMultipleComponent]
 public class Perf : MonoBehaviour
 {
-    [SerializeField] ColdMemoryMaker coldMemoryMaker;
     void Start()
     {
 #if UNITY_WEBGL
