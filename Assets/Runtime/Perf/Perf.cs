@@ -22,21 +22,21 @@ public class Perf : MonoBehaviour
     public void PeekMemory()
     {
         float reservedRam = Profiler.GetTotalReservedMemoryLong();
-        Debug.Log($"[Unity]Total Reserved Memory: {reservedRam / 1048576f:F1} MB");
+        Debug.Log($"[Unity] Total Reserved Memory: {reservedRam / 1048576f:F1} MB");
 
         float totalMemory = Profiler.GetTotalAllocatedMemoryLong();
-        Debug.Log($"[Unity]Total Allocated Memory: {totalMemory / 1048576f:F1} MB");
+        Debug.Log($"[Unity] Total Allocated Memory: {totalMemory / 1048576f:F1} MB");
 
         // 作为 Memory Profiler 中的 Managed 部分的 Reserved，不包含 VM 内部开销
         float monoHeapSize = Profiler.GetMonoHeapSizeLong();
-        Debug.Log($"[Unity]Mono Heap Size: {monoHeapSize / 1048576f:F1} MB");
+        Debug.Log($"[Unity] Mono Heap Size: {monoHeapSize / 1048576f:F1} MB");
         // 作为 Memory Profiler 中的 Managed 部分的 Object，不包含 VM 内部开销
         float monoRam = Profiler.GetMonoUsedSizeLong();
-        Debug.Log($"[Unity]Mono Used Size: {monoRam / 1048576f:F1} MB");
+        Debug.Log($"[Unity] Mono Used Size: {monoRam / 1048576f:F1} MB");
 
         // 作为 Memory Profiler 中的 Graphics（Estimated）
         float graphicsMemory = Profiler.GetAllocatedMemoryForGraphicsDriver();
-        Debug.Log($"[Unity]Graphics Driver Allocated Memory: {graphicsMemory / 1048576f:F1} MB");
+        Debug.Log($"[Unity] Graphics Driver Allocated Memory: {graphicsMemory / 1048576f:F1} MB");
     }
 
 #if UNITY_WEBGL && !UNITY_EDITOR
