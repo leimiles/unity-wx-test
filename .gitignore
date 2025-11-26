@@ -83,7 +83,6 @@ Assets/AddressableAssetsData
 Assets/AddressableAssetsData.meta
 Assets/WX-WASM-SDK-V2/Editor/MiniGameConfig.asset
 Assets/MiniGameHostConfig.asset.meta
-.vscode
 Bundles
 Assets/AssetGraph
 Assets/AssetGraph.meta
