@@ -303,7 +303,7 @@ PrefabInstance:
     - target: {fileID: 2660620628328194669, guid: 6f9621007d775495f9c8de66058392bc,
         type: 3}
       propertyPath: m_text
-      value: 
+      value: Peek WX
       objectReference: {fileID: 0}
     - target: {fileID: 5817510849166728196, guid: 6f9621007d775495f9c8de66058392bc,
         type: 3}
@@ -319,7 +319,7 @@ PrefabInstance:
         type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 538265693}
     - target: {fileID: 5817510849166728196, guid: 6f9621007d775495f9c8de66058392bc,
         type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
@@ -328,12 +328,12 @@ PrefabInstance:
     - target: {fileID: 5817510849166728196, guid: 6f9621007d775495f9c8de66058392bc,
         type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: 
+      value: PeekWXMemory
       objectReference: {fileID: 0}
     - target: {fileID: 5817510849166728196, guid: 6f9621007d775495f9c8de66058392bc,
         type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: Ricimi.SceneTransition, Assembly-CSharp
+      value: Perf, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 5817510849166728196, guid: 6f9621007d775495f9c8de66058392bc,
         type: 3}
