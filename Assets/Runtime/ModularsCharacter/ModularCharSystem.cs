@@ -9,10 +9,17 @@ public class ModularCharSystem : MonoBehaviour
     [SerializeField] Transform rootBone;
     [SerializeField] Transform headAttachment;
     GameObject hairPrefab;
-    GameObject uppberBodyPrefab;
+    [SerializeField] GameObject uppberBodyPrefab;
     Dictionary<string, Transform> boneMap = new Dictionary<string, Transform>();
 
-    void Awake()
+    void Start()
+    {
+        VerifyBoneMap();
+        ChangeUpperBody();
+    }
+
+
+    void VerifyBoneMap()
     {
         if (rootBone != null)
         {
@@ -21,16 +28,10 @@ public class ModularCharSystem : MonoBehaviour
                 boneMap[bone.name] = bone;
             }
         }
-
     }
 
     public void ChangeHair()
     {
-        if (hairPrefab == null)
-        {
-            hairPrefab = Resources.Load<GameObject>("mdl_hair01");
-        }
-
         if (hairPrefab != null && !hairPrefab.activeInHierarchy)
         {
             hairPrefab = Instantiate(hairPrefab, headAttachment);
@@ -40,15 +41,11 @@ public class ModularCharSystem : MonoBehaviour
 
     public void ChangeUpperBody()
     {
-        if (uppberBodyPrefab == null)
-        {
-            uppberBodyPrefab = Resources.Load<GameObject>("mdl_upperbody01");
-        }
         if (uppberBodyPrefab != null && !uppberBodyPrefab.activeInHierarchy)
         {
             uppberBodyPrefab = Instantiate(uppberBodyPrefab, transform);
             uppberBodyPrefab.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
-            RebindBones(uppberBodyPrefab.GetComponentInChildren<SkinnedMeshRenderer>());
+            RebindBonesWithExtraBonesCompatible(uppberBodyPrefab.GetComponentInChildren<SkinnedMeshRenderer>());
             RemoveOldBones(uppberBodyPrefab.transform.GetChild(0));
         }
 
@@ -56,14 +53,19 @@ public class ModularCharSystem : MonoBehaviour
 
     void RemoveOldBones(Transform oldBone)
     {
-        if (oldBone.name == "Girl_Bip001")
+        if (oldBone.name == rootBone.name)
         {
-            Destroy(oldBone.gameObject);
+            Debug.Log($"root bone name: <color=red>{rootBone.name}</color>");
+            Debug.Log($"old bone name: <color=green>{oldBone.name}</color>");
         }
+
     }
 
     void RebindBones(SkinnedMeshRenderer skinnedMeshRenderer)
     {
+        // 用红色字体输出每个 skinnedMeshRenderer.bones 的名字，方便调试
+        //Debug.Log($"Rebinding bones for <color=red>{skinnedMeshRenderer.name}</color>");
+
         Transform[] newBones = new Transform[skinnedMeshRenderer.bones.Length];
         for (int i = 0; i < skinnedMeshRenderer.bones.Length; i++)
         {
@@ -82,4 +84,38 @@ public class ModularCharSystem : MonoBehaviour
         skinnedMeshRenderer.bones = newBones;
         skinnedMeshRenderer.rootBone = rootBone;
     }
+
+    void RebindBonesWithExtraBonesCompatible(SkinnedMeshRenderer skinnedMeshRenderer)
+    {
+        Transform[] newBones = new Transform[skinnedMeshRenderer.bones.Length];
+
+        for (int i = 0; i < skinnedMeshRenderer.bones.Length; i++)
+        {
+            Transform sourceBone = skinnedMeshRenderer.bones[i];
+
+            if (boneMap.ContainsKey(sourceBone.name))
+            {
+                // 标准骨骼：使用基准骨骼
+                newBones[i] = boneMap[sourceBone.name];
+
+                Debug.Log($"Standard bone '{sourceBone.name}' found in base skeleton, using base bone");
+            }
+            else
+            {
+                // 额外骨骼（如尾巴）：保留原骨骼，避免变形
+                newBones[i] = sourceBone;
+                Debug.Log($"Extra bone '{sourceBone.name}' not found in base skeleton, using original bone");
+                SetParentNodeInBoneMap(sourceBone);
+            }
+        }
+
+        skinnedMeshRenderer.bones = newBones;
+        skinnedMeshRenderer.rootBone = rootBone;
+    }
+
+    void SetParentNodeInBoneMap(Transform bone)
+    {
+        Debug.Log($"SetParentNodeInBoneMap: {bone.parent.name}");
+    }
+
 }

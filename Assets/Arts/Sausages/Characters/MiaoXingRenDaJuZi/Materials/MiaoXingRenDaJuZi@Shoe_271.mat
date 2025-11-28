@@ -20,7 +20,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: MiaoXingRenDaJuZi@Hair_297
+  m_Name: MiaoXingRenDaJuZi@Shoe_271
   m_Shader: {fileID: 4800000, guid: c3da45ffe15624807a022048bee879e8, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -38,7 +38,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _BaseMap:
-        m_Texture: {fileID: 2800000, guid: da432220a4fae4dd7b297a330bd43933, type: 3}
+        m_Texture: {fileID: 2800000, guid: a4f2ccef7df9f47ca99ce14eaf5b5b9c, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BumpMap:
@@ -70,7 +70,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalMap:
-        m_Texture: {fileID: 2800000, guid: 21acdcb423c9042f3b222ca3bd90d5b5, type: 3}
+        m_Texture: {fileID: 2800000, guid: 2566c10d8b64c41ec8c070c446408143, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _OcclusionMap:
