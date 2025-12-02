@@ -38,7 +38,6 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.12729266, g: 0.13414232, b: 0.12114291, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -168,9 +167,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 684d5efa0da8246ddad04b37c14d6a2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rootBone: {fileID: 991718922}
+  baseBonesRoot: {fileID: 991718922}
   headAttachment: {fileID: 0}
-  uppberBodyPrefab: {fileID: 8658913287614203610, guid: 14a5507d13bd744908ac40c7ec7654d6,
+  hairPrefab: {fileID: 0}
+  upperBodyPrefab: {fileID: 8658913287614203610, guid: 14a5507d13bd744908ac40c7ec7654d6,
     type: 3}
 --- !u!1001 &991718920
 PrefabInstance:
