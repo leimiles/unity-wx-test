@@ -6,10 +6,10 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class ModularCharSystem : MonoBehaviour
 {
+    [SerializeField] Transform rigidAttachment;
+    [SerializeField] GameObject rigidPrefab;
     [SerializeField] Transform baseBonesRoot;
-    [SerializeField] Transform headAttachment;
-    [SerializeField] GameObject hairPrefab;
-    [SerializeField] GameObject upperBodyPrefab;
+    [SerializeField] GameObject skinnedPrefab;
     Dictionary<string, Transform> baseBonesMap = new Dictionary<string, Transform>();
     Dictionary<string, Transform> baseBonesOriginal = new Dictionary<string, Transform>(); // 保存基准骨骼的原始引用（用于重置）
 
@@ -67,13 +67,13 @@ public class ModularCharSystem : MonoBehaviour
     GameObject currentHair; // 添加字段存储当前实例
     public void ChangeHair()
     {
-        if (hairPrefab == null)
+        if (rigidPrefab == null)
         {
             Debug.LogWarning("Hair prefab is not assigned");
             return;
         }
 
-        if (headAttachment == null)
+        if (rigidAttachment == null)
         {
             Debug.LogWarning("Head attachment point is not assigned");
             return;
@@ -86,7 +86,7 @@ public class ModularCharSystem : MonoBehaviour
         }
 
         // 实例化新头发
-        currentHair = Instantiate(hairPrefab, headAttachment);
+        currentHair = Instantiate(rigidPrefab, rigidAttachment);
     }
 
     /// <summary>
@@ -96,7 +96,7 @@ public class ModularCharSystem : MonoBehaviour
 
     public void ChangeUpperBody()
     {
-        if (upperBodyPrefab == null)
+        if (skinnedPrefab == null)
         {
             Debug.LogWarning("Upper body prefab is not assigned");
             return;
@@ -116,7 +116,7 @@ public class ModularCharSystem : MonoBehaviour
             Destroy(currentUpperBody);
         }
 
-        currentUpperBody = Instantiate(upperBodyPrefab, transform);
+        currentUpperBody = Instantiate(skinnedPrefab, transform);
 
         // 处理所有 SkinnedMeshRenderer（支持多个部位）
         SkinnedMeshRenderer[] renderers = currentUpperBody.GetComponentsInChildren<SkinnedMeshRenderer>();
@@ -129,7 +129,7 @@ public class ModularCharSystem : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"No SkinnedMeshRenderer found in {upperBodyPrefab.name}");
+            Debug.LogWarning($"No SkinnedMeshRenderer found in {skinnedPrefab.name}");
         }
 
         RemoveOldBones(currentUpperBody.transform);
