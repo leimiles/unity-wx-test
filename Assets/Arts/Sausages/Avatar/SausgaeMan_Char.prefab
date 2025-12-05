@@ -46,9 +46,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rigidAttachment: {fileID: 0}
-  rigidPrefab: {fileID: 0}
+  rigidPrefabTest1: {fileID: 0}
+  rigidPrefabTest2: {fileID: 0}
   baseBonesRoot: {fileID: 8555104092027146078}
-  skinnedPrefab: {fileID: 0}
+  skinnedOutfitPrefabTest1: {fileID: 0}
+  skinnedOutfitPrefabTest2: {fileID: 0}
 --- !u!1001 &9061485196424912259
 PrefabInstance:
   m_ObjectHideFlags: 0

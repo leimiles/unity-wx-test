@@ -10,6 +10,7 @@ public class ModularChar : MonoBehaviour
     {
         Rigid,
         Hair,
+        Head,
         Outfit,
         UpperBody,
         LowerBody,
@@ -36,8 +37,8 @@ public class ModularChar : MonoBehaviour
     void Start()
     {
         VerifyBoneMap();
-        ChangeSkinnedPart(ModularPartType.Outfit, skinnedOutfitPrefabTest1);     // 更换服装1
-        ChangeSkinnedPart(ModularPartType.Outfit, skinnedOutfitPrefabTest2);     // 更换服装2，服装1 会被删除
+        //ChangeRigidPart(ModularPartType.Rigid, rigidAttachment, rigidPrefabTest1);
+        ChangeSkinnedPart(ModularPartType.Head, skinnedOutfitPrefabTest1);
     }
 #endif
 
@@ -87,14 +88,42 @@ public class ModularChar : MonoBehaviour
 
 
     /// <summary>
-    /// 添加刚体部位，会删除旧的刚体部位，并实例化新的刚体部位
+    /// 添加刚体部位，相同部位会被覆盖
     /// </summary>
     /// <param name="rigidPartTransform"></param>
     /// <param name="rigidPrefab"></param>
-    public void ChangeRigidPart(Transform rigidPartAttachment, GameObject rigidPrefab)
+    public void ChangeRigidPart(ModularPartType partType, Transform rigidPartAttachment, GameObject rigidPrefab)
     {
-        if (rigidPartAttachment == null || rigidPrefab == null) return;
+        if (rigidPartAttachment == null || rigidPrefab == null)
+        {
+            Debug.LogWarning("Rigid part attachment or prefab is not assigned");
+            return;
+        }
 
+        // 如果已存在相同部位，删除旧的
+        if (onBodyParts.ContainsKey(partType) && onBodyParts[partType] != null)
+        {
+            Destroy(onBodyParts[partType]);
+        }
+
+        // 实例化新部位
+        onBodyParts[partType] = Instantiate(rigidPrefab, rigidPartAttachment);
+
+    }
+
+    /// <summary>
+    /// 移除指定部位
+    /// </summary>
+    public void RemovePart(ModularPartType partType)
+    {
+        if (onBodyParts.TryGetValue(partType, out var part))
+        {
+            if (part != null)
+            {
+                Destroy(part);
+            }
+            onBodyParts.Remove(partType);
+        }
     }
 
 
@@ -124,10 +153,10 @@ public class ModularChar : MonoBehaviour
     // }
 
     /// <summary>
-    /// 更换服装，会删除旧的服装，并实例化新的服装
+    /// 更换服装，相同部位会被覆盖
     /// </summary>
     /// <param name="skinnedOutfitPrefab"></param>
-    public void ChangeSkinnedPart(ModularPartType partType, GameObject skinnedPartPrefab)
+    public void ChangeSkinnedPart(ModularPartType partType, GameObject skinnedPartPrefab, bool resetBoneMap = true)
     {
         if (skinnedPartPrefab == null)
         {
@@ -142,7 +171,10 @@ public class ModularChar : MonoBehaviour
         }
 
         // 重置骨骼映射，移除之前的额外骨骼
-        ResetBoneMap();
+        if (resetBoneMap)
+        {
+            ResetBoneMap();
+        }
 
         // 如果包含 key，且值不为 null，则删除
         if (onBodyParts.ContainsKey(partType) && onBodyParts[partType] != null)

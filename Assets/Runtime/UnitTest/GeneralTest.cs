@@ -12,6 +12,8 @@ public class GeneralTest : MonoBehaviour
         ModularCharSpawner.Instance.Spawn();
         ModularCharSpawner.Instance.Spawn();
         ModularCharSpawner.Instance.Spawn();
+        ModularCharSpawner.Instance.Despawn();
+        ModularCharSpawner.Instance.Despawn();
     }
 
 }
