@@ -20,7 +20,7 @@ namespace MilesUtils
                     instance = FindAnyObjectByType<T>();
                     if (instance == null)
                     {
-                        var go = new GameObject(typeof(T).Name + " Auto-Generated");
+                        var go = new GameObject($"{typeof(T).Name} [Auto-Generated]");
                         instance = go.AddComponent<T>();
                     }
                 }

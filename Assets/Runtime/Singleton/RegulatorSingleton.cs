@@ -23,7 +23,7 @@ namespace MilesUtils
                     instance = FindAnyObjectByType<T>();
                     if (instance == null)
                     {
-                        var go = new GameObject($"{typeof(T).Name} Auto-Generated");
+                        var go = new GameObject($"{typeof(T).Name} [Auto-Generated]");
                         go.hideFlags = HideFlags.HideAndDontSave;
                         instance = go.AddComponent<T>();
                     }
