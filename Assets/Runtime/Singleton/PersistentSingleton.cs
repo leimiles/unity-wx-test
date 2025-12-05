@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace UnityUtils
+namespace MilesUtils
 {
     public class PersistentSingleton<T> : MonoBehaviour
         where T : Component
