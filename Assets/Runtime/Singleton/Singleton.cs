@@ -37,12 +37,27 @@ namespace UnityUtils
             InitializeSingleton();
         }
 
-        protected virtual void InitializeSingleton()
+        protected virtual void InitializeSingleton0()
         {
             if (!Application.isPlaying)
                 return;
 
             instance = this as T;
+        }
+
+        protected virtual void InitializeSingleton()
+        {
+            if (!Application.isPlaying)
+                return;
+
+            if (instance == null)
+            {
+                instance = this as T;
+            }
+            else if (instance != this)
+            {
+                Destroy(gameObject); // Destroy the duplicate instance
+            }
         }
     }
 }
