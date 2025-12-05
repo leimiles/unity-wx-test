@@ -6,6 +6,19 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class ModularChar : MonoBehaviour
 {
+    enum ModularPartType
+    {
+        Rigid,
+        Hair,
+        Outfit,
+        UpperBody,
+        LowerBody,
+        Shoes,
+        Gloves,
+        Backpack,
+        Accessory
+    }
+
     [SerializeField] Transform rigidAttachment;
     [SerializeField] GameObject rigidPrefabTest1;
     [SerializeField] GameObject rigidPrefabTest2;
@@ -14,6 +27,7 @@ public class ModularChar : MonoBehaviour
     [SerializeField] GameObject skinnedOutfitPrefabTest2;
     Dictionary<string, Transform> baseBonesMap = new Dictionary<string, Transform>();
     Dictionary<string, Transform> baseBonesOriginal = new Dictionary<string, Transform>(); // 保存基准骨骼的原始引用（用于重置）
+    Dictionary<ModularPartType, GameObject> onBodyParts = new Dictionary<ModularPartType, GameObject>();
 
 #if UNITY_EDITOR
     /// <summary>
@@ -22,8 +36,8 @@ public class ModularChar : MonoBehaviour
     void Start()
     {
         VerifyBoneMap();
-        ChangeOutfit(skinnedOutfitPrefabTest1);
-        ChangeOutfit(skinnedOutfitPrefabTest2);
+        ChangeOutfit(skinnedOutfitPrefabTest1);     // 更换服装1
+        ChangeOutfit(skinnedOutfitPrefabTest2);     // 更换服装2，服装1 会被删除
     }
 #endif
 
@@ -109,8 +123,6 @@ public class ModularChar : MonoBehaviour
         currentHair = Instantiate(rigidPrefab, rigidAttachment);
     }
 
-    GameObject currentOutfit; // 添加字段
-
     /// <summary>
     /// 更换服装，会删除旧的服装，并实例化新的服装
     /// </summary>
@@ -132,15 +144,16 @@ public class ModularChar : MonoBehaviour
         // 重置骨骼映射，移除之前的额外骨骼
         ResetBoneMap();
 
-        if (currentOutfit != null)
+        // 如果包含 key，且值不为 null，则删除
+        if (onBodyParts.ContainsKey(ModularPartType.Outfit) && onBodyParts[ModularPartType.Outfit] != null)
         {
-            Destroy(currentOutfit);
+            Destroy(onBodyParts[ModularPartType.Outfit]);
         }
 
-        currentOutfit = Instantiate(skinnedOutfitPrefab, transform);
+        onBodyParts[ModularPartType.Outfit] = Instantiate(skinnedOutfitPrefab, transform);
 
         // 处理所有 SkinnedMeshRenderer（支持多个部位）
-        SkinnedMeshRenderer[] renderers = currentOutfit.GetComponentsInChildren<SkinnedMeshRenderer>();
+        SkinnedMeshRenderer[] renderers = onBodyParts[ModularPartType.Outfit].GetComponentsInChildren<SkinnedMeshRenderer>();
         if (renderers != null && renderers.Length > 0)
         {
             foreach (var renderer in renderers)
@@ -153,7 +166,7 @@ public class ModularChar : MonoBehaviour
             Debug.LogWarning($"No SkinnedMeshRenderer found in {skinnedOutfitPrefab.name}");
         }
 
-        RemoveOldBones(currentOutfit.transform);
+        RemoveOldBones(onBodyParts[ModularPartType.Outfit].transform);
     }
 
     /// <summary>
