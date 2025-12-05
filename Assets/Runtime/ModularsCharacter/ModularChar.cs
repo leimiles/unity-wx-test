@@ -4,20 +4,28 @@ using UnityEngine;
 
 
 [DisallowMultipleComponent]
-public class ModularCharSystem : MonoBehaviour
+public class ModularChar : MonoBehaviour
 {
     [SerializeField] Transform rigidAttachment;
-    [SerializeField] GameObject rigidPrefab;
+    [SerializeField] GameObject rigidPrefabTest1;
+    [SerializeField] GameObject rigidPrefabTest2;
     [SerializeField] Transform baseBonesRoot;
-    [SerializeField] GameObject skinnedPrefab;
+    [SerializeField] GameObject skinnedOutfitPrefabTest1;
+    [SerializeField] GameObject skinnedOutfitPrefabTest2;
     Dictionary<string, Transform> baseBonesMap = new Dictionary<string, Transform>();
     Dictionary<string, Transform> baseBonesOriginal = new Dictionary<string, Transform>(); // 保存基准骨骼的原始引用（用于重置）
 
+#if UNITY_EDITOR
+    /// <summary>
+    /// 在编辑器模式下，初始化时，更换服装
+    /// </summary>
     void Start()
     {
         VerifyBoneMap();
-        ChangeUpperBody();
+        ChangeOutfit(skinnedOutfitPrefabTest1);
+        ChangeOutfit(skinnedOutfitPrefabTest2);
     }
+#endif
 
 
     void VerifyBoneMap()
@@ -64,8 +72,20 @@ public class ModularCharSystem : MonoBehaviour
     }
 
 
+    /// <summary>
+    /// 添加刚体部位，会删除旧的刚体部位，并实例化新的刚体部位
+    /// </summary>
+    /// <param name="rigidPartTransform"></param>
+    /// <param name="rigidPrefab"></param>
+    public void ChangeRigidPart(Transform rigidPartAttachment, GameObject rigidPrefab)
+    {
+        if (rigidPartAttachment == null || rigidPrefab == null) return;
+
+    }
+
+
     GameObject currentHair; // 添加字段存储当前实例
-    public void ChangeHair()
+    public void ChangeHair(GameObject rigidPrefab)
     {
         if (rigidPrefab == null)
         {
@@ -89,16 +109,17 @@ public class ModularCharSystem : MonoBehaviour
         currentHair = Instantiate(rigidPrefab, rigidAttachment);
     }
 
-    /// <summary>
-    /// 更换上半身，但其实各个部位都是可以更换的
-    /// </summary>
-    GameObject currentUpperBody; // 添加字段
+    GameObject currentOutfit; // 添加字段
 
-    public void ChangeUpperBody()
+    /// <summary>
+    /// 更换服装，会删除旧的服装，并实例化新的服装
+    /// </summary>
+    /// <param name="skinnedOutfitPrefab"></param>
+    public void ChangeOutfit(GameObject skinnedOutfitPrefab)
     {
-        if (skinnedPrefab == null)
+        if (skinnedOutfitPrefab == null)
         {
-            Debug.LogWarning("Upper body prefab is not assigned");
+            Debug.LogWarning("Outfit prefab is not assigned");
             return;
         }
 
@@ -111,15 +132,15 @@ public class ModularCharSystem : MonoBehaviour
         // 重置骨骼映射，移除之前的额外骨骼
         ResetBoneMap();
 
-        if (currentUpperBody != null)
+        if (currentOutfit != null)
         {
-            Destroy(currentUpperBody);
+            Destroy(currentOutfit);
         }
 
-        currentUpperBody = Instantiate(skinnedPrefab, transform);
+        currentOutfit = Instantiate(skinnedOutfitPrefab, transform);
 
         // 处理所有 SkinnedMeshRenderer（支持多个部位）
-        SkinnedMeshRenderer[] renderers = currentUpperBody.GetComponentsInChildren<SkinnedMeshRenderer>();
+        SkinnedMeshRenderer[] renderers = currentOutfit.GetComponentsInChildren<SkinnedMeshRenderer>();
         if (renderers != null && renderers.Length > 0)
         {
             foreach (var renderer in renderers)
@@ -129,10 +150,10 @@ public class ModularCharSystem : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"No SkinnedMeshRenderer found in {skinnedPrefab.name}");
+            Debug.LogWarning($"No SkinnedMeshRenderer found in {skinnedOutfitPrefab.name}");
         }
 
-        RemoveOldBones(currentUpperBody.transform);
+        RemoveOldBones(currentOutfit.transform);
     }
 
     /// <summary>
@@ -148,37 +169,6 @@ public class ModularCharSystem : MonoBehaviour
         {
             Destroy(oldRootBone.gameObject);
         }
-    }
-
-    /// <summary>
-    /// 重新绑定骨骼，不兼容额外骨骼（如尾巴等）
-    /// </summary>
-    /// <param name="skinnedMeshRenderer"></param>
-    void RebindBones(SkinnedMeshRenderer skinnedMeshRenderer)
-    {
-        if (skinnedMeshRenderer == null || baseBonesRoot == null) return;
-
-        // 用红色字体输出每个 skinnedMeshRenderer.bones 的名字，方便调试
-        //Debug.Log($"Rebinding bones for <color=red>{skinnedMeshRenderer.name}</color>");
-
-        Transform[] newBones = new Transform[skinnedMeshRenderer.bones.Length];
-        for (int i = 0; i < skinnedMeshRenderer.bones.Length; i++)
-        {
-            Transform sourceBone = skinnedMeshRenderer.bones[i];
-            if (sourceBone == null) continue;
-
-            if (baseBonesMap.ContainsKey(sourceBone.name))
-            {
-                newBones[i] = baseBonesMap[sourceBone.name];
-            }
-            else
-            {
-                Debug.LogWarning($"Bone '{sourceBone.name}' not found in base bones map for {skinnedMeshRenderer.name}");
-            }
-        }
-
-        skinnedMeshRenderer.bones = newBones;
-        skinnedMeshRenderer.rootBone = baseBonesRoot;
     }
 
 

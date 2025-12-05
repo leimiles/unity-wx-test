@@ -6,7 +6,7 @@ using MilesUtils;
 /// </summary>
 public class ModularCharSpawner : Singleton<ModularCharSpawner>
 {
-    ModularCharSystem modularCharSystemPrefab;
+    ModularChar modularCharSystemPrefab;
     static int instanceCount = 0;
 
     public void Spawn()
@@ -14,4 +14,11 @@ public class ModularCharSpawner : Singleton<ModularCharSpawner>
         instanceCount++;
         Debug.Log($"Spawn: {instanceCount}");
     }
+
+    public void Despawn()
+    {
+        instanceCount--;
+        Debug.Log($"Despawn: {instanceCount}");
+    }
+
 }
