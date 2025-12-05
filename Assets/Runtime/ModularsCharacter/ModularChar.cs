@@ -6,7 +6,7 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class ModularChar : MonoBehaviour
 {
-    enum ModularPartType
+    public enum ModularPartType
     {
         Rigid,
         Hair,
@@ -36,8 +36,8 @@ public class ModularChar : MonoBehaviour
     void Start()
     {
         VerifyBoneMap();
-        ChangeOutfit(skinnedOutfitPrefabTest1);     // 更换服装1
-        ChangeOutfit(skinnedOutfitPrefabTest2);     // 更换服装2，服装1 会被删除
+        ChangeSkinnedPart(ModularPartType.Outfit, skinnedOutfitPrefabTest1);     // 更换服装1
+        ChangeSkinnedPart(ModularPartType.Outfit, skinnedOutfitPrefabTest2);     // 更换服装2，服装1 会被删除
     }
 #endif
 
@@ -98,40 +98,40 @@ public class ModularChar : MonoBehaviour
     }
 
 
-    GameObject currentHair; // 添加字段存储当前实例
-    public void ChangeHair(GameObject rigidPrefab)
-    {
-        if (rigidPrefab == null)
-        {
-            Debug.LogWarning("Hair prefab is not assigned");
-            return;
-        }
+    // GameObject currentHair; // 添加字段存储当前实例
+    // public void ChangeHair(GameObject rigidPrefab)
+    // {
+    //     if (rigidPrefab == null)
+    //     {
+    //         Debug.LogWarning("Hair prefab is not assigned");
+    //         return;
+    //     }
 
-        if (rigidAttachment == null)
-        {
-            Debug.LogWarning("Head attachment point is not assigned");
-            return;
-        }
+    //     if (rigidAttachment == null)
+    //     {
+    //         Debug.LogWarning("Head attachment point is not assigned");
+    //         return;
+    //     }
 
-        // 清理旧头发
-        if (currentHair != null)
-        {
-            Destroy(currentHair);
-        }
+    //     // 清理旧头发
+    //     if (currentHair != null)
+    //     {
+    //         Destroy(currentHair);
+    //     }
 
-        // 实例化新头发
-        currentHair = Instantiate(rigidPrefab, rigidAttachment);
-    }
+    //     // 实例化新头发
+    //     currentHair = Instantiate(rigidPrefab, rigidAttachment);
+    // }
 
     /// <summary>
     /// 更换服装，会删除旧的服装，并实例化新的服装
     /// </summary>
     /// <param name="skinnedOutfitPrefab"></param>
-    public void ChangeOutfit(GameObject skinnedOutfitPrefab)
+    public void ChangeSkinnedPart(ModularPartType partType, GameObject skinnedPartPrefab)
     {
-        if (skinnedOutfitPrefab == null)
+        if (skinnedPartPrefab == null)
         {
-            Debug.LogWarning("Outfit prefab is not assigned");
+            Debug.LogWarning("Skinned part prefab is not assigned");
             return;
         }
 
@@ -145,15 +145,15 @@ public class ModularChar : MonoBehaviour
         ResetBoneMap();
 
         // 如果包含 key，且值不为 null，则删除
-        if (onBodyParts.ContainsKey(ModularPartType.Outfit) && onBodyParts[ModularPartType.Outfit] != null)
+        if (onBodyParts.ContainsKey(partType) && onBodyParts[partType] != null)
         {
-            Destroy(onBodyParts[ModularPartType.Outfit]);
+            Destroy(onBodyParts[partType]);
         }
 
-        onBodyParts[ModularPartType.Outfit] = Instantiate(skinnedOutfitPrefab, transform);
+        onBodyParts[partType] = Instantiate(skinnedPartPrefab, transform);
 
         // 处理所有 SkinnedMeshRenderer（支持多个部位）
-        SkinnedMeshRenderer[] renderers = onBodyParts[ModularPartType.Outfit].GetComponentsInChildren<SkinnedMeshRenderer>();
+        SkinnedMeshRenderer[] renderers = onBodyParts[partType].GetComponentsInChildren<SkinnedMeshRenderer>();
         if (renderers != null && renderers.Length > 0)
         {
             foreach (var renderer in renderers)
@@ -163,10 +163,10 @@ public class ModularChar : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning($"No SkinnedMeshRenderer found in {skinnedOutfitPrefab.name}");
+            Debug.LogWarning($"No SkinnedMeshRenderer found in {skinnedPartPrefab.name}");
         }
 
-        RemoveOldBones(onBodyParts[ModularPartType.Outfit].transform);
+        RemoveOldBones(onBodyParts[partType].transform);
     }
 
     /// <summary>
