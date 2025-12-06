@@ -20,12 +20,16 @@ public class ModularChar : MonoBehaviour
         Accessory
     }
 
-    [SerializeField] Transform rigidAttachment;
+#if UNITY_EDITOR
     [SerializeField] GameObject rigidPrefabTest1;
     [SerializeField] GameObject rigidPrefabTest2;
-    [SerializeField] Transform baseBonesRoot;
     [SerializeField] GameObject skinnedOutfitPrefabTest1;
     [SerializeField] GameObject skinnedOutfitPrefabTest2;
+    [SerializeField] GameObject skinnedOutfitPrefabTest3;
+#endif
+    [SerializeField] Transform baseBonesRoot;
+    [SerializeField] Transform rigidAttachment;
+
     Dictionary<string, Transform> baseBonesMap = new Dictionary<string, Transform>();
     Dictionary<string, Transform> baseBonesOriginal = new Dictionary<string, Transform>(); // 保存基准骨骼的原始引用（用于重置）
     Dictionary<ModularPartType, GameObject> onBodyParts = new Dictionary<ModularPartType, GameObject>();
@@ -36,14 +40,19 @@ public class ModularChar : MonoBehaviour
     /// </summary>
     void Start()
     {
-        VerifyBoneMap();
-        //ChangeRigidPart(ModularPartType.Rigid, rigidAttachment, rigidPrefabTest1);
-        ChangeSkinnedPart(ModularPartType.Head, skinnedOutfitPrefabTest1);
+        if (!VerifyBoneMap())
+        {
+            Debug.LogWarning("VerifyBoneMap failed");
+            return;
+        }
+        ChangeRigidPart(ModularPartType.Rigid, rigidAttachment, rigidPrefabTest1);
+        ChangeSkinnedPart(ModularPartType.UpperBody, skinnedOutfitPrefabTest1);
+        ChangeSkinnedPart(ModularPartType.Outfit, skinnedOutfitPrefabTest2);
     }
 #endif
 
 
-    void VerifyBoneMap()
+    bool VerifyBoneMap()
     {
         if (baseBonesRoot != null)
         {
@@ -55,7 +64,9 @@ public class ModularChar : MonoBehaviour
                 baseBonesMap[bone.name] = bone;
                 baseBonesOriginal[bone.name] = bone; // 保存原始基准骨骼引用
             }
+            return true;
         }
+        return false;
     }
 
     /// <summary>
@@ -126,31 +137,6 @@ public class ModularChar : MonoBehaviour
         }
     }
 
-
-    // GameObject currentHair; // 添加字段存储当前实例
-    // public void ChangeHair(GameObject rigidPrefab)
-    // {
-    //     if (rigidPrefab == null)
-    //     {
-    //         Debug.LogWarning("Hair prefab is not assigned");
-    //         return;
-    //     }
-
-    //     if (rigidAttachment == null)
-    //     {
-    //         Debug.LogWarning("Head attachment point is not assigned");
-    //         return;
-    //     }
-
-    //     // 清理旧头发
-    //     if (currentHair != null)
-    //     {
-    //         Destroy(currentHair);
-    //     }
-
-    //     // 实例化新头发
-    //     currentHair = Instantiate(rigidPrefab, rigidAttachment);
-    // }
 
     /// <summary>
     /// 更换服装，相同部位会被覆盖
