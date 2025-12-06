@@ -68,6 +68,31 @@ PrefabInstance:
       propertyPath: m_Name
       value: SuperApple@Hair_909
       objectReference: {fileID: 0}
+    - target: {fileID: 6921955872189125618, guid: 622d4d93c0b9943a3b4a307d1548669a,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6921955872189125618, guid: 622d4d93c0b9943a3b4a307d1548669a,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6921955872189125618, guid: 622d4d93c0b9943a3b4a307d1548669a,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6921955872189125618, guid: 622d4d93c0b9943a3b4a307d1548669a,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6921955872189125618, guid: 622d4d93c0b9943a3b4a307d1548669a,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8716553813787556730, guid: 622d4d93c0b9943a3b4a307d1548669a,
         type: 3}
       propertyPath: m_Materials.Array.data[0]
