@@ -264,9 +264,9 @@ MonoBehaviour:
   rigidPrefabTest1: {fileID: 758226407533620896, guid: 64fcdea46a3104629a856eb30c9a6272,
     type: 3}
   rigidPrefabTest2: {fileID: 0}
-  skinnedOutfitPrefabTest1: {fileID: 3881814251719807564, guid: 1e2646053044e4aafa4a43c11e229f77,
+  skinnedOutfitPrefabTest1: {fileID: 7229096894783488827, guid: 7b6bbba1a4b204ec6b2314d0432e002c,
     type: 3}
-  skinnedOutfitPrefabTest2: {fileID: 2734863505377354399, guid: 82b577c5b1e814c7cb7202276b3268d0,
+  skinnedOutfitPrefabTest2: {fileID: 7229096894783488827, guid: 7b6bbba1a4b204ec6b2314d0432e002c,
     type: 3}
   skinnedOutfitPrefabTest3: {fileID: 604403330098781084, guid: 49b82c00f901f47f88836aa6f2c93269,
     type: 3}
