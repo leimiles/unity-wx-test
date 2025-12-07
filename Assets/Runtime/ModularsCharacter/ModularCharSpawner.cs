@@ -6,7 +6,7 @@ using MilesUtils;
 /// </summary>
 public class ModularCharSpawner : Singleton<ModularCharSpawner>
 {
-    ModularChar modularCharSystemPrefab;
+    ModularCharMonoRef modularCharMonoRefPrefab;
     static int instanceCount = 0;
 
     public void Spawn()
