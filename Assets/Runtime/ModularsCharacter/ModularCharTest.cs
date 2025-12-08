@@ -37,5 +37,16 @@ public class ModularCharTest : MonoBehaviour
         modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.Hair, skinnedOutfitPrefabTest1);
         modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.UpperBody, skinnedOutfitPrefabTest2);
         modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.Outfit, skinnedOutfitPrefabTest3);
+
+#if UNITY_EDITOR
+        var boneRenderer = modularCharMonoRef.GetBoneRenderer();
+        if (boneRenderer != null)
+        {
+            Debug.Log("Reset bone renderer");
+            boneRenderer.ClearBones();
+            boneRenderer.transforms = modularCharMonoRef.BaseBonesRoot.GetComponentsInChildren<Transform>();
+            boneRenderer.Invalidate();
+        }
+#endif
     }
 }

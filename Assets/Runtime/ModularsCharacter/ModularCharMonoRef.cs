@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+#if UNITY_EDITOR
+using UnityEngine.Animations.Rigging;
+#endif
 /// <summary>
 /// 模块化角色 Mono 组件 - 纯数据类，不包含业务逻辑
 /// 参考实现：展示如何实现 IModularChar 接口
@@ -12,6 +14,10 @@ public class ModularCharMonoRef : MonoBehaviour, IModularChar
     // ========== 序列化字段 ==========
     [SerializeField] private Transform baseBonesRoot;
     [SerializeField] private Transform rigidAttachment;
+
+#if UNITY_EDITOR
+    [SerializeField] private BoneRenderer boneRenderer;
+#endif
 
     // ========== 私有数据存储 ==========
     private Dictionary<string, Transform> baseBonesMap = new Dictionary<string, Transform>();
@@ -95,5 +101,12 @@ public class ModularCharMonoRef : MonoBehaviour, IModularChar
         baseBonesOriginal.Clear();
         onBodyParts.Clear();
     }
+
+#if UNITY_EDITOR
+    public BoneRenderer GetBoneRenderer()
+    {
+        return boneRenderer;
+    }
+#endif
 }
 
