@@ -94,3 +94,6 @@ unity_wx_test_BurstDebugInformation_DoNotShip
 .DS_Store
 WebGLBuilds
 iOSBuilds
+Assets/StreamingAssets
+Assets/StreamingAssets.meta
+yoo

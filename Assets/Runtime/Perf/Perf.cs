@@ -20,10 +20,12 @@ public class Perf : MonoBehaviour
 #endif
     }
 
+#if UNITY_WEBGL
     void OnMemoryWarningCallback(OnMemoryWarningListenerResult result)
     {
         Debug.Log($"[WX] Memory Warning Triggered! Level: {result.level}");
     }
+#endif
 
     public void PeekWXMemory()
     {
