@@ -36,8 +36,8 @@ public class BudgetedParticle : MonoBehaviour
 
     [Header("预算配置")]
     [SerializeField] int estimatedCostLOD0 = 600;
-    [SerializeField] VFXPriority particlePriority = VFXPriority.Normal;
-    [SerializeField] VFXType particleType = VFXType.Env;
+    //[SerializeField] VFXPriority particlePriority = VFXPriority.Normal;
+    //[SerializeField] VFXType particleType = VFXType.Env;
 
     int CurrentCost { get; set; }
 
