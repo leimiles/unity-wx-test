@@ -55,7 +55,7 @@ public class ModularEquipmentSystem
         RemovePart(modularChar, partType);
 
         // 实例化新部位
-        GameObject newPart = Object.Instantiate(rigidPrefab, targetAttachment);
+        GameObject newPart = GameObject.Instantiate(rigidPrefab, targetAttachment);
         modularChar.InternalSetPart(partType, newPart);
 
         return true;
@@ -110,7 +110,7 @@ public class ModularEquipmentSystem
             return false;
         }
 
-        GameObject newPart = Object.Instantiate(skinnedPartPrefab, charTransform);
+        GameObject newPart = GameObject.Instantiate(skinnedPartPrefab, charTransform);
         modularChar.InternalSetPart(partType, newPart);
 
         // 处理所有 SkinnedMeshRenderer（支持多个部位）
