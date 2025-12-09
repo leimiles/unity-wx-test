@@ -1,7 +1,6 @@
 ﻿#if UNITY_WEBGL && WEIXINMINIGAME
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using YooAsset;
 using WeChatWASM;

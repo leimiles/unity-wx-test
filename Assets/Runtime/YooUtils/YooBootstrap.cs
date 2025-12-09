@@ -9,10 +9,10 @@ using UnityEngine.Networking;
 public class YooBootstrap : MonoBehaviour
 {
     [Header("CDN 配置")]
-    [Tooltip("CDN 服务器地址（例如：https://cdn.example.com）")]
-    public string cdnUrl = "https://your-cdn-server.com";
+    [Tooltip("CDN 服务器地址(例如:https://cdn.example.com)")]
+    public string cdnUrl = "https://a.unity.cn/client_api/v1/buckets/be845f55-2cfe-4e08-87e9-1b8162181a67/content/UOS CDN";
 
-    [Tooltip("资源版本号（例如：v1.0）")]
+    [Tooltip("资源版本号(例如:v1.0)")]
     public string appVersion = "v1.0";
 
     [Tooltip("资源包名称")]
@@ -22,7 +22,7 @@ public class YooBootstrap : MonoBehaviour
     [Tooltip("用于验证的资源名称（需要确保该资源在 CDN 上存在）")]
     public string testAssetName = "JiJiGuoWang@Suit_580";
 
-    [Tooltip("运行模式")]
+    [Tooltip("运行模式, 如果运行在微信小游戏, 请选择 CustomPlayMode")]
     public EPlayMode playMode = EPlayMode.HostPlayMode;
 
     private void Start()
@@ -81,15 +81,29 @@ public class YooBootstrap : MonoBehaviour
 
         if (playMode == EPlayMode.HostPlayMode)
         {
-            var createParameters = new HostPlayModeParameters();
-            createParameters.BuildinFileSystemParameters = FileSystemParameters.CreateDefaultBuildinFileSystemParameters();
-            createParameters.CacheFileSystemParameters = FileSystemParameters.CreateDefaultCacheFileSystemParameters(remoteServices);
+            var createParameters = new HostPlayModeParameters
+            {
+                BuildinFileSystemParameters = FileSystemParameters.CreateDefaultBuildinFileSystemParameters(),
+                CacheFileSystemParameters = FileSystemParameters.CreateDefaultCacheFileSystemParameters(remoteServices)
+            };
             initOperation = package.InitializeAsync(createParameters);
         }
         else if (playMode == EPlayMode.WebPlayMode)
         {
-            var createParameters = new WebPlayModeParameters();
-            createParameters.WebServerFileSystemParameters = FileSystemParameters.CreateDefaultWebServerFileSystemParameters();
+            var createParameters = new WebPlayModeParameters
+            {
+                WebServerFileSystemParameters = FileSystemParameters.CreateDefaultWebServerFileSystemParameters()
+            };
+            initOperation = package.InitializeAsync(createParameters);
+        }
+        else if (playMode == EPlayMode.CustomPlayMode)
+        {
+            // Use CustomPlayMode as WX MiniGame
+            string packageRoot = $"{WeChatWASM.WX.env.USER_DATA_PATH}/_GAME_FILE_CACHE/yoo";
+            var createParameters = new WebPlayModeParameters
+            {
+                WebServerFileSystemParameters = WechatFileSystemCreater.CreateFileSystemParameters(packageRoot, remoteServices, null)
+            };
             initOperation = package.InitializeAsync(createParameters);
         }
         else
@@ -111,7 +125,7 @@ public class YooBootstrap : MonoBehaviour
 
         // 6. 请求资源版本（HostPlayMode 和 WebPlayMode 需要）
         string packageVersion = null;
-        if (playMode == EPlayMode.HostPlayMode || playMode == EPlayMode.WebPlayMode)
+        if (playMode == EPlayMode.HostPlayMode || playMode == EPlayMode.WebPlayMode || playMode == EPlayMode.CustomPlayMode)
         {
             Debug.Log("步骤 5: 请求资源版本...");
             var versionOperation = package.RequestPackageVersionAsync(false);
@@ -129,7 +143,7 @@ public class YooBootstrap : MonoBehaviour
         }
 
         // 7. 更新资源清单（HostPlayMode 和 WebPlayMode 需要）
-        if (playMode == EPlayMode.HostPlayMode || playMode == EPlayMode.WebPlayMode)
+        if (playMode == EPlayMode.HostPlayMode || playMode == EPlayMode.WebPlayMode || playMode == EPlayMode.CustomPlayMode)
         {
             Debug.Log("步骤 6: 更新资源清单...");
             var manifestOperation = package.UpdatePackageManifestAsync(packageVersion);
