@@ -114,7 +114,7 @@ public class YooBootstrap : MonoBehaviour
         if (playMode == EPlayMode.HostPlayMode || playMode == EPlayMode.WebPlayMode)
         {
             Debug.Log("步骤 5: 请求资源版本...");
-            var versionOperation = package.RequestPackageVersionAsync();
+            var versionOperation = package.RequestPackageVersionAsync(false);
             yield return versionOperation;
 
             if (versionOperation.Status != EOperationStatus.Succeed)
@@ -261,6 +261,27 @@ public class YooBootstrap : MonoBehaviour
             return "PC";
 #endif
     }
+
+
+    // IEnumerator InitPackage()
+    // {
+    //     // 创建远程服务类
+    //     string defaultHostServer = GetCDNUrl();
+    //     string fallbackHostServer = GetCDNUrl();
+    //     var remoteServices = new RemoteServices(defaultHostServer, fallbackHostServer);
+
+    //     // 小游戏缓存根目录
+    //     // 注意：此处代码根据微信插件配置来填写！
+    //     string packageRoot = $"{WeChatWASM.WX.env.USER_DATA_PATH}/__GAME_FILE_CACHE/yoo";
+    //     //string pacakgeRoot = $"{WeChatWASM.WX.PluginCachePath}/yoo";
+
+    //     // 创建初始化参数
+    //     var createParameters = new WebPlayModeParameters();
+    //     createParameters.WebServerFileSystemParameters = WechatFileSystemCreater.CreateFileSystemParameters(packageRoot, remoteServices, null);
+
+    //     // 初始化ResourcePackage
+    //     yield return package.InitializeAsync(createParameters);
+    // }
 
     /// <summary>
     /// 远端资源地址查询服务类
