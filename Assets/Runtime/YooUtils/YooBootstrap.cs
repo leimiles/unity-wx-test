@@ -48,8 +48,8 @@ public class YooBootstrap : MonoBehaviour
 
         // 3. 配置 CDN 地址
         Debug.Log($"步骤 3: 配置 CDN 地址 '{cdnUrl}'...");
-        string defaultHostServer = GetCDNUrl();
-        string fallbackHostServer = GetCDNUrl(); // 备用地址，可以设置为不同的 CDN
+        string defaultHostServer = GetHostServerURL();
+        string fallbackHostServer = GetHostServerURL(); // 备用地址，可以设置为不同的 CDN
         IRemoteServices remoteServices = new RemoteServices(defaultHostServer, fallbackHostServer);
         Debug.Log($"主 CDN 地址: {defaultHostServer}");
         Debug.Log($"备用 CDN 地址: {fallbackHostServer}");
@@ -243,7 +243,7 @@ public class YooBootstrap : MonoBehaviour
     /// <summary>
     /// 获取 CDN URL（根据平台自动选择路径）
     /// </summary>
-    private string GetCDNUrl()
+    private string GetHostServerURL()
     {
         string platform = GetPlatformName();
         return $"{cdnUrl}/{platform}/{appVersion}";
@@ -276,26 +276,6 @@ public class YooBootstrap : MonoBehaviour
 #endif
     }
 
-
-    // IEnumerator InitPackage()
-    // {
-    //     // 创建远程服务类
-    //     string defaultHostServer = GetCDNUrl();
-    //     string fallbackHostServer = GetCDNUrl();
-    //     var remoteServices = new RemoteServices(defaultHostServer, fallbackHostServer);
-
-    //     // 小游戏缓存根目录
-    //     // 注意：此处代码根据微信插件配置来填写！
-    //     string packageRoot = $"{WeChatWASM.WX.env.USER_DATA_PATH}/__GAME_FILE_CACHE/yoo";
-    //     //string pacakgeRoot = $"{WeChatWASM.WX.PluginCachePath}/yoo";
-
-    //     // 创建初始化参数
-    //     var createParameters = new WebPlayModeParameters();
-    //     createParameters.WebServerFileSystemParameters = WechatFileSystemCreater.CreateFileSystemParameters(packageRoot, remoteServices, null);
-
-    //     // 初始化ResourcePackage
-    //     yield return package.InitializeAsync(createParameters);
-    // }
 
     /// <summary>
     /// 远端资源地址查询服务类
