@@ -25,8 +25,20 @@ public class YooUtils : PersistentSingleton<YooUtils>
     public event Action OnInitialized;
     public event Action<string> OnInitializeFailed;
 
-    // 资源句柄管理
-    private Dictionary<string, AssetHandle> activeHandles = new Dictionary<string, AssetHandle>();
+    // 资源句柄管理（带引用计数）
+    private Dictionary<string, AssetHandleInfo> activeHandles = new();
+
+    private class AssetHandleInfo
+    {
+        public AssetHandle Handle { get; set; }
+        public int RefCount { get; set; }
+
+        public AssetHandleInfo(AssetHandle handle)
+        {
+            Handle = handle;
+            RefCount = 1;
+        }
+    }
 
     protected override void Awake()
     {
@@ -261,17 +273,38 @@ public class YooUtils : PersistentSingleton<YooUtils>
 
         Log(3, $"[YooUtils] 开始加载资源: {address}");
 
+        // 先检查是否已存在（避免重复加载）
+        if (activeHandles.TryGetValue(address, out var existingHandleInfo))
+        {
+            // 如果已存在，等待已存在的句柄完成（如果还没完成）
+            yield return existingHandleInfo.Handle;
+
+            if (existingHandleInfo.Handle.Status == EOperationStatus.Succeed)
+            {
+                existingHandleInfo.RefCount++;
+                Log(3, $"[YooUtils] 资源已加载，引用计数: {existingHandleInfo.RefCount}: {address}");
+                onSuccess?.Invoke(existingHandleInfo.Handle.AssetObject as T);
+            }
+            else
+            {
+                // 已存在的句柄失败，清理它以便后续重新尝试加载
+                LogError($"[YooUtils] 资源加载失败: {address}");
+                LogError(existingHandleInfo.Handle.LastError);
+                ReleaseAsset(address);  // 失败时释放句柄
+                onFail?.Invoke(existingHandleInfo.Handle.LastError);
+            }
+            yield break;
+        }
+
+        // 不存在，创建新的句柄
         var handle = YooAssets.LoadAssetAsync<T>(address);
         yield return handle;
 
         if (handle.Status == EOperationStatus.Succeed)
         {
             T asset = handle.AssetObject as T;
-            // 记录句柄用于后续释放
-            if (!activeHandles.ContainsKey(address))
-            {
-                activeHandles[address] = handle;
-            }
+            // 记录句柄用于后续释放（使用引用计数机制）
+            activeHandles[address] = new AssetHandleInfo(handle);
             onSuccess?.Invoke(asset);
         }
         else
@@ -285,6 +318,12 @@ public class YooUtils : PersistentSingleton<YooUtils>
 
     /// <summary>
     /// 异步加载资源（返回句柄，需要手动释放）
+    /// 带引用计数机制
+    /// 注意：
+    /// - 句柄会立即添加到字典中，即使加载还未完成
+    /// - 调用者需要等待句柄完成（yield return handle 或 await handle.ToUniTask()）
+    /// - 如果加载失败，调用者应该调用 ReleaseAsset(address) 来清理句柄
+    /// - 如果加载成功，句柄会保留在字典中，供后续复用
     /// </summary>
     public AssetHandle LoadAssetAsync<T>(string address) where T : UnityEngine.Object
     {
@@ -294,42 +333,44 @@ public class YooUtils : PersistentSingleton<YooUtils>
             return null;
         }
 
-        Log(3, $"[YooUtils] 开始异步加载资源: {address}");
-        var handle = YooAssets.LoadAssetAsync<T>(address);
-
-        if (!activeHandles.ContainsKey(address))
+        if (activeHandles.TryGetValue(address, out var handleInfo))
         {
-            activeHandles[address] = handle;
+            handleInfo.RefCount++;
+            Log(3, $"[YooUtils] 资源已加载，引用计数: {handleInfo.RefCount}: {address}");
+            return handleInfo.Handle;
         }
 
+        Log(3, $"[YooUtils] 开始异步加载资源: {address}");
+        var handle = YooAssets.LoadAssetAsync<T>(address);
+        activeHandles[address] = new AssetHandleInfo(handle);
         return handle;
     }
 
     /// <summary>
-    /// 同步加载资源（会阻塞，不推荐在主线程使用）
+    /// 同步加载资源（会阻塞，不推荐在主线程使用），暂不使用
     /// </summary>
-    public T LoadAssetSync<T>(string address) where T : UnityEngine.Object
-    {
-        if (!WaitForInitialization())
-        {
-            LogError($"[YooUtils] 未初始化，无法加载资源: {address}");
-            return null;
-        }
+    // public T LoadAssetSync<T>(string address) where T : UnityEngine.Object
+    // {
+    //     if (!WaitForInitialization())
+    //     {
+    //         LogError($"[YooUtils] 未初始化，无法加载资源: {address}");
+    //         return null;
+    //     }
 
-        Log(2, $"[YooUtils] 同步加载资源: {address}（注意：会阻塞主线程）");
-        var handle = YooAssets.LoadAssetSync<T>(address);
+    //     Log(2, $"[YooUtils] 同步加载资源: {address}（注意：会阻塞主线程）");
+    //     var handle = YooAssets.LoadAssetSync<T>(address);
 
-        if (handle != null)
-        {
-            if (!activeHandles.ContainsKey(address))
-            {
-                activeHandles[address] = handle;
-            }
-            return handle.AssetObject as T;
-        }
+    //     if (handle != null)
+    //     {
+    //         if (!activeHandles.ContainsKey(address))
+    //         {
+    //             activeHandles[address] = handle;
+    //         }
+    //         return handle.AssetObject as T;
+    //     }
 
-        return null;
-    }
+    //     return null;
+    // }
 
     /// <summary>
     /// 加载场景
@@ -363,15 +404,179 @@ public class YooUtils : PersistentSingleton<YooUtils>
     }
 
     /// <summary>
+    /// 检查资源是否需要下载
+    /// </summary>
+    public bool CheckNeedDownload(out int totalCount, out long totalBytes)
+    {
+        totalCount = 0;
+        totalBytes = 0;
+
+        if (!WaitForInitialization())
+            return false;
+
+        var downloader = CreateDownloader();
+        if (downloader == null)
+            return false;
+
+        totalCount = downloader.TotalDownloadCount;
+        totalBytes = downloader.TotalDownloadBytes;
+        return totalCount > 0;
+    }
+
+    /// <summary>
+    /// 下载资源（协程方式，带进度回调）
+    /// </summary>
+    public IEnumerator DownloadResources(
+        System.Action<float> onProgress = null,
+        System.Action onComplete = null,
+        System.Action<string> onError = null)
+    {
+        if (!WaitForInitialization())
+        {
+            onError?.Invoke("未初始化");
+            yield break;
+        }
+
+        var downloader = CreateDownloader();
+        if (downloader == null)
+        {
+            onError?.Invoke("创建下载器失败");
+            yield break;
+        }
+
+        if (downloader.TotalDownloadCount == 0)
+        {
+            onComplete?.Invoke();
+            yield break;
+        }
+
+        // 开始下载
+        downloader.BeginDownload();
+
+        // 监控进度
+        while (!downloader.IsDone)
+        {
+            onProgress?.Invoke(downloader.Progress);
+            yield return null;
+        }
+
+        // 检查结果
+        if (downloader.Status == EOperationStatus.Succeed)
+        {
+            onComplete?.Invoke();
+        }
+        else
+        {
+            onError?.Invoke(downloader.Error);
+        }
+    }
+
+    /// <summary>
+    /// 预加载资源列表
+    /// </summary>
+    public IEnumerator PreloadAssets<T>(
+        string[] addresses,
+        System.Action<int, int> onProgress = null,
+        System.Action onComplete = null,
+        System.Action<string> onError = null) where T : UnityEngine.Object
+    {
+        if (!WaitForInitialization())
+        {
+            onError?.Invoke("未初始化");
+            yield break;
+        }
+
+        int total = addresses.Length;
+        int loaded = 0;
+
+        foreach (var address in addresses)
+        {
+            var handle = LoadAssetAsync<T>(address);
+            if (handle == null)
+            {
+                onError?.Invoke($"预加载失败: {address} - 无法创建加载句柄");
+                continue;
+            }
+
+            yield return handle;
+
+            if (handle.Status == EOperationStatus.Succeed)
+            {
+                loaded++;
+                onProgress?.Invoke(loaded, total);
+            }
+            else
+            {
+                Log(2, $"[YooUtils] 预加载失败，释放句柄: {address}");
+                ReleaseAsset(address);  // 失败时释放句柄
+                onError?.Invoke($"预加载失败: {address} - {handle.LastError}");
+            }
+        }
+
+        onComplete?.Invoke();
+    }
+
+    /// <summary>
+    /// 检查资源是否存在
+    /// </summary>
+    public bool CheckAssetExists(string address)
+    {
+        if (!WaitForInitialization())
+            return false;
+
+        var location = currentPackage.GetAssetInfo(address);
+        return location != null;
+    }
+
+    /// <summary>
+    /// 获取资源信息
+    /// </summary>
+    public AssetInfo GetAssetInfo(string address)
+    {
+        if (!WaitForInitialization())
+            return null;
+
+        return currentPackage.GetAssetInfo(address);
+    }
+
+    /// <summary>
+    /// 获取资源包信息
+    /// </summary>
+    public PackageDetails GetPackageInfo()
+    {
+        if (!WaitForInitialization())
+            return null;
+
+        return currentPackage.GetPackageDetails();
+    }
+
+    /// <summary>
+    /// 获取当前活跃的资源句柄数量
+    /// </summary>
+    public int GetActiveHandleCount()
+    {
+        return activeHandles.Count;
+    }
+
+    /// <summary>
     /// 释放资源句柄
+    /// 带引用计数机制
     /// </summary>
     public void ReleaseAsset(string address)
     {
-        if (activeHandles.TryGetValue(address, out var handle))
+        if (activeHandles.TryGetValue(address, out var handleInfo))
         {
-            handle.Release();
-            activeHandles.Remove(address);
-            Log(3, $"[YooUtils] 已释放资源: {address}");
+            handleInfo.RefCount--;
+            if (handleInfo.RefCount <= 0)
+            {
+                handleInfo.Handle.Release();
+                activeHandles.Remove(address);
+                Log(3, $"[YooUtils] 已释放资源: {address}");
+            }
+            else
+            {
+                Log(3, $"[YooUtils] 资源引用计数减少: {handleInfo.RefCount}: {address}");
+            }
         }
         else
         {
@@ -386,16 +591,18 @@ public class YooUtils : PersistentSingleton<YooUtils>
     {
         foreach (var kvp in activeHandles)
         {
-            kvp.Value.Release();
+            kvp.Value.Handle.Release();
         }
         activeHandles.Clear();
         Log(3, "[YooUtils] 已释放所有资源句柄");
     }
 
     /// <summary>
-    /// 卸载未使用的资源
+    /// 卸载未使用的资源（带回调）
     /// </summary>
-    public IEnumerator UnloadUnusedAssets()
+    public IEnumerator UnloadUnusedAssets(
+        System.Action<float> onProgress = null,
+        System.Action onComplete = null)
     {
         if (currentPackage == null)
         {
@@ -405,8 +612,42 @@ public class YooUtils : PersistentSingleton<YooUtils>
 
         Log(3, "[YooUtils] 开始卸载未使用的资源...");
         var operation = currentPackage.UnloadUnusedAssetsAsync();
-        yield return operation;
+
+        while (!operation.IsDone)
+        {
+            onProgress?.Invoke(operation.Progress);
+            yield return null;
+        }
+
         Log(3, "[YooUtils] 卸载未使用的资源完成");
+        onComplete?.Invoke();
+    }
+
+
+    /// <summary>
+    /// 检查资源版本更新
+    /// </summary>
+    public IEnumerator CheckVersionUpdate(
+        System.Action<string> onVersionChecked = null,
+        System.Action<string> onError = null)
+    {
+        if (!WaitForInitialization())
+        {
+            onError?.Invoke("未初始化");
+            yield break;
+        }
+
+        var versionOperation = currentPackage.RequestPackageVersionAsync(false);
+        yield return versionOperation;
+
+        if (versionOperation.Status == EOperationStatus.Succeed)
+        {
+            onVersionChecked?.Invoke(versionOperation.PackageVersion);
+        }
+        else
+        {
+            onError?.Invoke(versionOperation.Error);
+        }
     }
 
     #endregion
