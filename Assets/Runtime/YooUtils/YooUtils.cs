@@ -60,13 +60,13 @@ public class YooUtils : PersistentSingleton<YooUtils>
     {
         if (isInitialized)
         {
-            Log(3, "YooAsset 已经初始化，跳过");
+            Debug.Log("YooAsset 已经初始化，跳过");
             yield break;
         }
 
         if (isInitializing)
         {
-            Log(2, "YooAsset 正在初始化中，请等待...");
+            Debug.LogWarning("YooAsset 正在初始化中，请等待...");
             while (isInitializing)
                 yield return null;
             yield break;
@@ -78,29 +78,29 @@ public class YooUtils : PersistentSingleton<YooUtils>
         if (settings == null)
         {
             string error = "YooUtilsSettings 配置为空！请在 Inspector 中分配设置资源";
-            LogError(error);
+            Debug.LogError(error);
             OnInitializeFailed?.Invoke(error);
             isInitializing = false;
             yield break;
         }
 
-        Log(3, "=== 开始 YooAsset 初始化 ===");
+        Debug.Log("=== 开始 YooAsset 初始化 ===");
 
         // 初始化流程
         {
             // 1. 初始化 YooAsset（检查是否已初始化）
             if (!YooAssets.Initialized)
             {
-                Log(3, "步骤 1: 初始化 YooAsset...");
+                Debug.Log("步骤 1: 初始化 YooAsset...");
                 YooAssets.Initialize();
             }
             else
             {
-                Log(3, "步骤 1: YooAsset 已初始化，跳过");
+                Debug.Log("步骤 1: YooAsset 已初始化，跳过");
             }
 
             // 2. 创建资源包
-            Log(3, $"步骤 2: 创建资源包 '{settings.packageName}'...");
+            Debug.Log($"步骤 2: 创建资源包 '{settings.packageName}'...");
             currentPackage = YooAssets.TryGetPackage(settings.packageName);
             if (currentPackage == null)
             {
@@ -108,37 +108,37 @@ public class YooUtils : PersistentSingleton<YooUtils>
             }
 
             // 3. 配置 CDN 地址
-            Log(3, $"步骤 3: 配置 CDN 地址 '{settings.hostServerURL}'...");
+            Debug.Log($"步骤 3: 配置 CDN 地址 '{settings.hostServerURL}'...");
             string defaultHostServer = GetHostServerURL(settings.hostServerURL);
             string fallbackHostServer = string.IsNullOrEmpty(settings.hostServerFallbackURL)
                 ? defaultHostServer
                 : GetHostServerURL(settings.hostServerFallbackURL);
 
             IRemoteServices remoteServices = new RemoteServices(defaultHostServer, fallbackHostServer);
-            Log(3, $"主 CDN 地址: {defaultHostServer}");
-            Log(3, $"备用 CDN 地址: {fallbackHostServer}");
+            Debug.Log($"主 CDN 地址: {defaultHostServer}");
+            Debug.Log($"备用 CDN 地址: {fallbackHostServer}");
 
             // 3.5. 验证网络连接
             if (settings.needNetworkVerified)
             {
-                Log(3, "步骤 3.5: 验证网络连接...");
+                Debug.Log("步骤 3.5: 验证网络连接...");
                 bool networkAvailable = false;
                 yield return TestNetworkConnection(defaultHostServer, (result) => networkAvailable = result);
 
                 if (!networkAvailable && fallbackHostServer != defaultHostServer)
                 {
-                    Log(2, "主 CDN 连接失败，尝试备用 CDN...");
+                    Debug.LogWarning("主 CDN 连接失败，尝试备用 CDN...");
                     yield return TestNetworkConnection(fallbackHostServer, (result) => networkAvailable = result);
                 }
 
                 if (!networkAvailable)
                 {
                     string error = "网络连接验证失败！无法访问 CDN 服务器";
-                    LogError(error);
-                    LogError($"请检查：");
-                    LogError($"1. CDN 地址是否正确: {settings.hostServerURL}");
-                    LogError($"2. 网络连接是否正常");
-                    LogError($"3. CDN 服务器是否可访问");
+                    Debug.LogError(error);
+                    Debug.LogError($"请检查：");
+                    Debug.LogError($"1. CDN 地址是否正确: {settings.hostServerURL}");
+                    Debug.LogError($"2. 网络连接是否正常");
+                    Debug.LogError($"3. CDN 服务器是否可访问");
                     OnInitializeFailed?.Invoke(error);
                     isInitializing = false;
                     yield break;
@@ -146,7 +146,7 @@ public class YooUtils : PersistentSingleton<YooUtils>
             }
 
             // 4. 初始化资源包
-            Log(3, "步骤 4: 初始化资源包...");
+            Debug.Log("步骤 4: 初始化资源包...");
             InitializationOperation initOperation = null;
 
             if (playMode == EPlayMode.HostPlayMode)
@@ -179,7 +179,7 @@ public class YooUtils : PersistentSingleton<YooUtils>
             else
             {
                 string error = $"不支持的运行模式: {playMode}，请使用 HostPlayMode、WebPlayMode 或 CustomPlayMode";
-                LogError(error);
+                Debug.LogError(error);
                 OnInitializeFailed?.Invoke(error);
                 isInitializing = false;
                 yield break;
@@ -191,63 +191,63 @@ public class YooUtils : PersistentSingleton<YooUtils>
             if (initOperation.Status != EOperationStatus.Succeed)
             {
                 string error = $"资源包初始化失败: {initOperation.Error}";
-                LogError(error);
+                Debug.LogError(error);
                 OnInitializeFailed?.Invoke(error);
                 isInitializing = false;
                 yield break;
             }
 
-            Log(3, "✓ 资源包初始化成功！");
+            Debug.Log("✓ 资源包初始化成功！");
 
             // 6. 请求资源版本（HostPlayMode 和 WebPlayMode 需要）
             string packageVersion = null;
             if (playMode == EPlayMode.HostPlayMode || playMode == EPlayMode.WebPlayMode || playMode == EPlayMode.CustomPlayMode)
             {
-                Log(3, "步骤 5: 请求资源版本...");
+                Debug.Log("步骤 5: 请求资源版本...");
                 var versionOperation = currentPackage.RequestPackageVersionAsync(false);
                 yield return versionOperation;
 
                 if (versionOperation.Status != EOperationStatus.Succeed)
                 {
                     string error = $"请求资源版本失败: {versionOperation.Error}";
-                    LogError(error);
-                    LogError("请确保 CDN 服务器上存在 PackageVersion.txt 文件");
+                    Debug.LogError(error);
+                    Debug.LogError("请确保 CDN 服务器上存在 PackageVersion.txt 文件");
                     OnInitializeFailed?.Invoke(error);
                     isInitializing = false;
                     yield break;
                 }
 
                 packageVersion = versionOperation.PackageVersion;
-                Log(3, $"✓ 获取到资源版本: {packageVersion}");
+                Debug.Log($"✓ 获取到资源版本: {packageVersion}");
             }
 
             // 7. 更新资源清单（HostPlayMode 和 WebPlayMode 需要）
             if (playMode == EPlayMode.HostPlayMode || playMode == EPlayMode.WebPlayMode || playMode == EPlayMode.CustomPlayMode)
             {
-                Log(3, "步骤 6: 更新资源清单...");
+                Debug.Log("步骤 6: 更新资源清单...");
                 var manifestOperation = currentPackage.UpdatePackageManifestAsync(packageVersion);
                 yield return manifestOperation;
 
                 if (manifestOperation.Status != EOperationStatus.Succeed)
                 {
                     string error = $"更新资源清单失败: {manifestOperation.Error}";
-                    LogError(error);
-                    LogError("请确保 CDN 服务器上存在对应的 manifest 文件");
+                    Debug.LogError(error);
+                    Debug.LogError("请确保 CDN 服务器上存在对应的 manifest 文件");
                     OnInitializeFailed?.Invoke(error);
                     isInitializing = false;
                     yield break;
                 }
 
-                Log(3, "✓ 资源清单更新成功！");
+                Debug.Log("✓ 资源清单更新成功！");
             }
 
             // 8. 设置默认资源包
             YooAssets.SetDefaultPackage(currentPackage);
-            Log(3, "✓ 已设置默认资源包");
+            Debug.Log("✓ 已设置默认资源包");
 
             isInitialized = true;
             isInitializing = false;
-            Log(3, "=== YooAsset 初始化完成 ===");
+            Debug.Log("=== YooAsset 初始化完成 ===");
             OnInitialized?.Invoke();
         }
     }
@@ -266,12 +266,12 @@ public class YooUtils : PersistentSingleton<YooUtils>
         if (!WaitForInitialization())
         {
             string error = $"未初始化，无法加载资源: {address}";
-            LogError($"[YooUtils] {error}");
+            Debug.LogError($"[YooUtils] {error}");
             onFail?.Invoke(error);
             yield break;
         }
 
-        Log(3, $"[YooUtils] 开始加载资源: {address}");
+        Debug.Log($"[YooUtils] 开始加载资源: {address}");
 
         // 先检查是否已存在（避免重复加载）
         if (activeHandles.TryGetValue(address, out var existingHandleInfo))
@@ -282,14 +282,14 @@ public class YooUtils : PersistentSingleton<YooUtils>
             if (existingHandleInfo.Handle.Status == EOperationStatus.Succeed)
             {
                 existingHandleInfo.RefCount++;
-                Log(3, $"[YooUtils] 资源已加载，引用计数: {existingHandleInfo.RefCount}: {address}");
+                Debug.Log($"[YooUtils] 资源已加载，引用计数: {existingHandleInfo.RefCount}: {address}");
                 onSuccess?.Invoke(existingHandleInfo.Handle.AssetObject as T);
             }
             else
             {
                 // 已存在的句柄失败，清理它以便后续重新尝试加载
-                LogError($"[YooUtils] 资源加载失败: {address}");
-                LogError(existingHandleInfo.Handle.LastError);
+                Debug.LogError($"[YooUtils] 资源加载失败: {address}");
+                Debug.LogError(existingHandleInfo.Handle.LastError);
                 ReleaseAsset(address);  // 失败时释放句柄
                 onFail?.Invoke(existingHandleInfo.Handle.LastError);
             }
@@ -309,8 +309,8 @@ public class YooUtils : PersistentSingleton<YooUtils>
         }
         else
         {
-            LogError($"[YooUtils] 加载失败: {address}");
-            LogError(handle.LastError);
+            Debug.LogError($"[YooUtils] 加载失败: {address}");
+            Debug.LogError(handle.LastError);
             onFail?.Invoke(handle.LastError);
             handle.Release();
         }
@@ -329,18 +329,18 @@ public class YooUtils : PersistentSingleton<YooUtils>
     {
         if (!WaitForInitialization())
         {
-            LogError($"[YooUtils] 未初始化，无法加载资源: {address}");
+            Debug.LogError($"[YooUtils] 未初始化，无法加载资源: {address}");
             return null;
         }
 
         if (activeHandles.TryGetValue(address, out var handleInfo))
         {
             handleInfo.RefCount++;
-            Log(3, $"[YooUtils] 资源已加载，引用计数: {handleInfo.RefCount}: {address}");
+            Debug.Log($"[YooUtils] 资源已加载，引用计数: {handleInfo.RefCount}: {address}");
             return handleInfo.Handle;
         }
 
-        Log(3, $"[YooUtils] 开始异步加载资源: {address}");
+        Debug.Log($"[YooUtils] 开始异步加载资源: {address}");
         var handle = YooAssets.LoadAssetAsync<T>(address);
         activeHandles[address] = new AssetHandleInfo(handle);
         return handle;
@@ -379,11 +379,11 @@ public class YooUtils : PersistentSingleton<YooUtils>
     {
         if (!WaitForInitialization())
         {
-            LogError($"[YooUtils] 未初始化，无法加载场景: {sceneName}");
+            Debug.LogError($"[YooUtils] 未初始化，无法加载场景: {sceneName}");
             return null;
         }
 
-        Log(3, $"[YooUtils] 开始加载场景: {sceneName}");
+        Debug.Log($"[YooUtils] 开始加载场景: {sceneName}");
         var handle = YooAssets.LoadSceneAsync(sceneName, loadMode);
         return handle;
     }
@@ -395,11 +395,11 @@ public class YooUtils : PersistentSingleton<YooUtils>
     {
         if (!WaitForInitialization())
         {
-            LogError("[YooUtils] 未初始化，无法创建下载器");
+            Debug.LogError("[YooUtils] 未初始化，无法创建下载器");
             return null;
         }
 
-        Log(3, $"[YooUtils] 创建资源下载器，最大并发数: {downloadingMaxNumber}, 失败重试次数: {failedTryAgain}");
+        Debug.Log($"[YooUtils] 创建资源下载器，最大并发数: {downloadingMaxNumber}, 失败重试次数: {failedTryAgain}");
         return currentPackage.CreateResourceDownloader(downloadingMaxNumber, failedTryAgain);
     }
 
@@ -507,7 +507,7 @@ public class YooUtils : PersistentSingleton<YooUtils>
             }
             else
             {
-                Log(2, $"[YooUtils] 预加载失败，释放句柄: {address}");
+                Debug.LogWarning($"[YooUtils] 预加载失败，释放句柄: {address}");
                 ReleaseAsset(address);  // 失败时释放句柄
                 onError?.Invoke($"预加载失败: {address} - {handle.LastError}");
             }
@@ -571,16 +571,16 @@ public class YooUtils : PersistentSingleton<YooUtils>
             {
                 handleInfo.Handle.Release();
                 activeHandles.Remove(address);
-                Log(3, $"[YooUtils] 已释放资源: {address}");
+                Debug.Log($"[YooUtils] 已释放资源: {address}");
             }
             else
             {
-                Log(3, $"[YooUtils] 资源引用计数减少: {handleInfo.RefCount}: {address}");
+                Debug.Log($"[YooUtils] 资源引用计数减少: {handleInfo.RefCount}: {address}");
             }
         }
         else
         {
-            Log(2, $"[YooUtils] 未找到资源句柄: {address}");
+            Debug.LogWarning($"[YooUtils] 未找到资源句柄: {address}");
         }
     }
 
@@ -594,7 +594,7 @@ public class YooUtils : PersistentSingleton<YooUtils>
             kvp.Value.Handle.Release();
         }
         activeHandles.Clear();
-        Log(3, "[YooUtils] 已释放所有资源句柄");
+        Debug.Log("[YooUtils] 已释放所有资源句柄");
     }
 
     /// <summary>
@@ -606,11 +606,11 @@ public class YooUtils : PersistentSingleton<YooUtils>
     {
         if (currentPackage == null)
         {
-            LogError("[YooUtils] 资源包未初始化");
+            Debug.LogError("[YooUtils] 资源包未初始化");
             yield break;
         }
 
-        Log(3, "[YooUtils] 开始卸载未使用的资源...");
+        Debug.Log("[YooUtils] 开始卸载未使用的资源...");
         var operation = currentPackage.UnloadUnusedAssetsAsync();
 
         while (!operation.IsDone)
@@ -619,7 +619,7 @@ public class YooUtils : PersistentSingleton<YooUtils>
             yield return null;
         }
 
-        Log(3, "[YooUtils] 卸载未使用的资源完成");
+        Debug.Log("[YooUtils] 卸载未使用的资源完成");
         onComplete?.Invoke();
     }
 
@@ -663,11 +663,11 @@ public class YooUtils : PersistentSingleton<YooUtils>
 
         if (isInitializing)
         {
-            Log(2, "[YooUtils] 正在初始化中，请稍候...");
+            Debug.LogWarning("[YooUtils] 正在初始化中，请稍候...");
             return false;
         }
 
-        LogError("[YooUtils] 未初始化，请先调用 Initialize()");
+        Debug.LogError("[YooUtils] 未初始化，请先调用 Initialize()");
         return false;
     }
 
@@ -725,7 +725,7 @@ public class YooUtils : PersistentSingleton<YooUtils>
     {
         // 尝试访问 NetworkVerifiedAssetName 文件来验证网络连接
         string testUrl = $"{cdnBaseUrl}/{settings.networkVerifiedAssetName}";
-        Log(3, $"测试连接: {testUrl}");
+        Debug.Log($"测试连接: {testUrl}");
 
         using (UnityWebRequest request = UnityWebRequest.Head(testUrl))
         {
@@ -736,12 +736,12 @@ public class YooUtils : PersistentSingleton<YooUtils>
             bool success = false;
             if (request.result == UnityWebRequest.Result.Success)
             {
-                Log(3, $"✓ 网络连接成功: {testUrl} (状态码: {request.responseCode})");
+                Debug.Log($"✓ 网络连接成功: {testUrl} (状态码: {request.responseCode})");
                 success = true;
             }
             else if (request.result == UnityWebRequest.Result.ConnectionError)
             {
-                Log(2, $"✗ 连接错误: {testUrl} - {request.error}");
+                Debug.LogWarning($"✗ 连接错误: {testUrl} - {request.error}");
                 success = false;
             }
             else if (request.result == UnityWebRequest.Result.ProtocolError)
@@ -749,61 +749,24 @@ public class YooUtils : PersistentSingleton<YooUtils>
                 // 404 也算连接成功（至少能访问到服务器）
                 if (request.responseCode == 404)
                 {
-                    Log(2, $"⚠ 文件不存在 (404): {testUrl}，但网络连接正常");
+                    Debug.LogWarning($"⚠ 文件不存在 (404): {testUrl}，但网络连接正常");
                     success = true;
                 }
                 else
                 {
-                    Log(2, $"✗ 协议错误: {testUrl} - {request.responseCode} {request.error}");
+                    Debug.LogWarning($"✗ 协议错误: {testUrl} - {request.responseCode} {request.error}");
                     success = false;
                 }
             }
             else
             {
-                Log(2, $"✗ 未知错误: {testUrl} - {request.error}");
+                Debug.LogWarning($"✗ 未知错误: {testUrl} - {request.error}");
                 success = false;
             }
 
             callback?.Invoke(success);
         }
     }
-
-    #region 日志管理
-
-    /// <summary>
-    /// 根据日志级别输出日志
-    /// </summary>
-    private void Log(int level, string message)
-    {
-        if (settings == null || settings.logLevel >= level)
-        {
-            Debug.Log($"[YooUtils] {message}");
-        }
-    }
-
-    /// <summary>
-    /// 输出警告日志
-    /// </summary>
-    private void LogWarning(string message)
-    {
-        if (settings == null || settings.logLevel >= 2)
-        {
-            Debug.LogWarning($"[YooUtils] {message}");
-        }
-    }
-
-    /// <summary>
-    /// 输出错误日志
-    /// </summary>
-    private void LogError(string message)
-    {
-        if (settings == null || settings.logLevel >= 1)
-        {
-            Debug.LogError($"[YooUtils] {message}");
-        }
-    }
-
-    #endregion
 
 
     private void OnDestroy()
