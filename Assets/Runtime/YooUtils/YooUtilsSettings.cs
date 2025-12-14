@@ -1,7 +1,8 @@
 using UnityEngine;
+using YooAsset;
 
-[CreateAssetMenu(fileName = "YooUtilsSettings", menuName = "WX/YooUtilsSettings", order = 1)]
-public class YooUtilsSettings : ScriptableObject
+[CreateAssetMenu(fileName = "YooUtilsSettings", menuName = "WX/Configs/YooUtilsSettings", order = 1)]
+public class YooUtilsSettings : IConfigs
 {
     [Header("服务器配置")]
     [Tooltip("主服务器地址")]
@@ -24,8 +25,6 @@ public class YooUtilsSettings : ScriptableObject
     [Tooltip("验证网络连接的资源名称")]
     public string networkVerifiedAssetName = "DefaultPackage.version";
 
-    [Header("日志配置")]
-    [Tooltip("日志级别：0=无日志, 1=仅错误, 2=警告+错误, 3=全部日志")]
-    [Range(0, 3)]
-    public int logLevel = 3;
+    [Tooltip("运行模式, 如果运行在微信小游戏, 请选择 CustomPlayMode")]
+    public EPlayMode playMode = EPlayMode.HostPlayMode;
 }

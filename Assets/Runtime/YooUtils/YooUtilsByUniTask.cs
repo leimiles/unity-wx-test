@@ -9,7 +9,6 @@ using UnityEngine.Networking;
 
 public class YooUtilsByUniTask
 {
-    readonly EPlayMode playMode;
     readonly YooUtilsSettings settings;
     bool isInitialized = false;
     ResourcePackage currentPackage;
@@ -28,10 +27,9 @@ public class YooUtilsByUniTask
         }
     }
 
-    public YooUtilsByUniTask(YooUtilsSettings yooUtilsSettings, EPlayMode ePlayMode)
+    public YooUtilsByUniTask(YooUtilsSettings yooUtilsSettings)
     {
         settings = yooUtilsSettings;
-        playMode = ePlayMode;
     }
 
     public UniTask InitializeAsync(CancellationToken ct = default)
@@ -112,7 +110,7 @@ public class YooUtilsByUniTask
             Debug.Log("Step 4: Initialize resource package...");
             InitializationOperation initOperation = null;
 
-            switch (playMode)
+            switch (settings.playMode)
             {
                 case EPlayMode.HostPlayMode:
                     var createParametersHost = new HostPlayModeParameters
@@ -138,7 +136,7 @@ public class YooUtilsByUniTask
                     initOperation = currentPackage.InitializeAsync(createParametersCustom);
                     break;
                 default:
-                    throw new System.Exception($"Unsupported play mode: {playMode}");
+                    throw new System.Exception($"Unsupported play mode: {settings.playMode}");
             }
 
             await initOperation.ToUniTask();
@@ -153,7 +151,7 @@ public class YooUtilsByUniTask
 
             // 5. Request package version
             string packageVersion = null;
-            if (playMode == EPlayMode.HostPlayMode || playMode == EPlayMode.WebPlayMode || playMode == EPlayMode.CustomPlayMode)
+            if (settings.playMode == EPlayMode.HostPlayMode || settings.playMode == EPlayMode.WebPlayMode || settings.playMode == EPlayMode.CustomPlayMode)
             {
                 Debug.Log("Step 5: Request package version...");
                 var versionOperation = currentPackage.RequestPackageVersionAsync(false);

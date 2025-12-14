@@ -1,37 +1,60 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using YooAsset;
 
 [DisallowMultipleComponent]
 public class Bootstrap : MonoBehaviour
 {
     [SerializeField] int frameRate = 60;
     [SerializeField] bool runInBackground = true;
-    public EPlayMode playMode = EPlayMode.EditorSimulateMode;
+    [SerializeField] BootstrapConfigs bootstrapConfigs;
+
+    EventBinding<BootstrapCompleteEvent> _bootCompleteBinding;
 
     void Awake()
     {
         Application.targetFrameRate = frameRate;
         Application.runInBackground = runInBackground;
-        DontDestroyOnLoad(this.gameObject);
+
+        _bootCompleteBinding = new EventBinding<BootstrapCompleteEvent>(OnBootComplete);
+        EventBus<BootstrapCompleteEvent>.Register(_bootCompleteBinding);
     }
 
-    IEnumerator Start()
+    void Start()
     {
-        // GameManager 启动
+        try
+        {
+            bootstrapConfigs.Validate();
+            EventBus<BootstrapStartEvent>.Raise(
+                new BootstrapStartEvent { bootstrapConfigs = bootstrapConfigs }
+            );
 
-        // 事件系统
-
-        // YooaAssets 资源系统启动
-
-        // 补丁更新，暂时没有
-        yield return null;
-
-        // 设置资源包
-
-        // 加载主场景
-
-
+            // 暂时不需要 GameManager 的实例，因为 GameManager 是 PersistentSingleton，会自动在启动时创建实例
+            //var gameManager = GameManager.Instance;
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError(e);
+        }
     }
+
+    void OnDestroy()
+    {
+        if (_bootCompleteBinding != null)
+        {
+            EventBus<BootstrapCompleteEvent>.Deregister(_bootCompleteBinding);
+        }
+    }
+
+    void OnBootComplete(BootstrapCompleteEvent e)
+    {
+        if (e.isSuccess)
+        {
+            Debug.Log("Bootstrap complete");
+            //TODO: 加载主场景
+        }
+        else
+        {
+            Debug.LogError("Bootstrap failed: " + e.message);
+        }
+    }
+
 }
