@@ -1,10 +1,8 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using YooAsset;
 using System;
 using Cysharp.Threading.Tasks;
-using System.Threading;
 using UnityEngine.Networking;
 
 public class YooUtilsByUniTask : ISubSystem
@@ -19,19 +17,14 @@ public class YooUtilsByUniTask : ISubSystem
     /// </summary>
     public bool IsRequired => true;
     /// <summary>
-    /// 进度
-    /// </summary>
-    public float Progress => _currentProgress;
-    /// <summary>
     /// 是否初始化完成
     /// </summary>
     public bool IsInitialized => isInitialized;
     readonly YooUtilsSettings settings;
     bool isInitialized = false;
-    float _currentProgress = 0.0f;
     ResourcePackage currentPackage;
-    public event Action OnInitialized;
-    public event Action<string> OnInitializeFailed;
+    //public event Action OnInitialized;
+    //public event Action<string> OnInitializeFailed;
     UniTask? _initTask;
     Dictionary<string, AssetHandleInfo> activeHandles = new();
 
@@ -49,7 +42,7 @@ public class YooUtilsByUniTask : ISubSystem
         settings = yooUtilsSettings;
     }
 
-    public UniTask InitializeAsync(IProgress<float> progress, CancellationToken ct = default)
+    public UniTask InitializeAsync(IProgress<float> progress)
     {
         if (isInitialized)
         {
@@ -63,10 +56,7 @@ public class YooUtilsByUniTask : ISubSystem
             // 初始化过程一旦开始就不应该被取消
             _initTask = InitializeInternalAsync(progress);
         }
-
-        // 所有调用都支持外部取消等待（但不取消初始化本身）
-        // 这样调用者可以取消等待，避免阻塞，但初始化会继续完成
-        return _initTask.Value.AttachExternalCancellation(ct);
+        return _initTask.Value;
     }
 
     async UniTask InitializeInternalAsync(IProgress<float> progress)
@@ -83,7 +73,6 @@ public class YooUtilsByUniTask : ISubSystem
 
             Debug.Log("=== Start YooAsset initialization ===");
             progress?.Report(0.0f);
-            _currentProgress = 0.0f;
 
             // 1. Initialize YooAsset
             if (!YooAssets.Initialized)
@@ -92,14 +81,12 @@ public class YooUtilsByUniTask : ISubSystem
                 YooAssets.Initialize();
             }
             progress?.Report(0.1f);
-            _currentProgress = 0.1f;
 
             // 2. Create package
             Debug.Log($"Step 2: Create package '{settings.packageName}'...");
             currentPackage = YooAssets.TryGetPackage(settings.packageName);
             currentPackage ??= YooAssets.CreatePackage(settings.packageName);
             progress?.Report(0.2f);
-            _currentProgress = 0.2f;
 
             // 3. Configure CDN address
             Debug.Log($"Step 3: Configure CDN address '{settings.hostServerURL}'...");
@@ -109,7 +96,6 @@ public class YooUtilsByUniTask : ISubSystem
             Debug.Log($"Main CDN address: {defaultHostServer}");
             Debug.Log($"Fallback CDN address: {fallbackHostServer}");
             progress?.Report(0.3f);
-            _currentProgress = 0.3f;
 
             // 3.5. Verify network connection
             if (settings.needNetworkVerified)
@@ -124,7 +110,6 @@ public class YooUtilsByUniTask : ISubSystem
                 }
 
                 progress?.Report(0.4f);
-                _currentProgress = 0.4f;
 
                 if (!networkAvailable)
                 {
@@ -141,7 +126,6 @@ public class YooUtilsByUniTask : ISubSystem
             {
                 progress?.Report(0.4f);
             }
-            _currentProgress = 0.4f;
 
             // 4. Initialize resource package
             Debug.Log("Step 4: Initialize resource package...");
@@ -178,7 +162,6 @@ public class YooUtilsByUniTask : ISubSystem
 
             await initOperation.ToUniTask();
             progress?.Report(0.5f);
-            _currentProgress = 0.5f;
 
             // Check initialization result
             if (initOperation.Status != EOperationStatus.Succeed)
@@ -196,7 +179,6 @@ public class YooUtilsByUniTask : ISubSystem
                 var versionOperation = currentPackage.RequestPackageVersionAsync(false);
                 await versionOperation.ToUniTask();
                 progress?.Report(0.65f);
-                _currentProgress = 0.65f;
 
                 if (versionOperation.Status != EOperationStatus.Succeed)
                 {
@@ -211,7 +193,6 @@ public class YooUtilsByUniTask : ISubSystem
                 var manifestOperation = currentPackage.UpdatePackageManifestAsync(packageVersion);
                 await manifestOperation.ToUniTask();
                 progress?.Report(0.85f);
-                _currentProgress = 0.85f;
 
                 if (manifestOperation.Status != EOperationStatus.Succeed)
                 {
@@ -224,24 +205,21 @@ public class YooUtilsByUniTask : ISubSystem
             {
                 progress?.Report(0.85f);
             }
-            _currentProgress = 0.85f;
 
             // 7. Set default package
             YooAssets.SetDefaultPackage(currentPackage);
             Debug.Log("Default package set successfully");
             progress?.Report(0.9f);
-            _currentProgress = 0.9f;
 
             isInitialized = true;
             progress?.Report(1.0f);
-            _currentProgress = 1.0f;
             Debug.Log("=== YooAsset initialization completed ===");
-            OnInitialized?.Invoke();
+            //OnInitialized?.Invoke();
         }
         catch (Exception e)
         {
             Debug.LogError($"YooUtils initialization failed: {e}");
-            OnInitializeFailed?.Invoke(e.Message);
+            //OnInitializeFailed?.Invoke(e.Message);
             throw;
         }
         finally

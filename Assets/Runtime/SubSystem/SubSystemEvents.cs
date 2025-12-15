@@ -1,6 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 
 public struct SubSystemInitializationStartEvent : IEvent
 {
@@ -10,6 +7,7 @@ public struct SubSystemInitializationStartEvent : IEvent
 
 public struct SubSystemInitializationProgressEvent : IEvent
 {
+    public string subSystemName;
     public float progress;
     public float totalProgress;
 }

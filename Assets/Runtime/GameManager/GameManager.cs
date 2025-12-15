@@ -1,10 +1,9 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using MilesUtils;
 using Cysharp.Threading.Tasks;
 using System;
-using System.Threading;
+
 public class GameManager : PersistentSingleton<GameManager>
 {
     EventBinding<BootstrapStartEvent> _bootstrapStartBinding;
@@ -46,16 +45,13 @@ public class GameManager : PersistentSingleton<GameManager>
 
         try
         {
+            _subSystems.Clear();
             CreateSubSystems(bootstrapConfigs);
 
             var progress = new Progress<float>(
                 (p) =>
                 {
                     Debug.Log($"Boot progress: {p * 100:F1}%");
-                    if (p > 1.0)
-                    {
-                        Debug.LogError("Boot progress reported greater than 100%");
-                    }
                 }
             );
 
@@ -88,7 +84,7 @@ public class GameManager : PersistentSingleton<GameManager>
         }
     }
 
-    async UniTask InitializeSubSystems(IProgress<float> progress, CancellationToken ct = default)
+    async UniTask InitializeSubSystems(IProgress<float> progress)
     {
         int totalSubSystems = _subSystems.Count;
         if (totalSubSystems <= 0)
@@ -107,8 +103,6 @@ public class GameManager : PersistentSingleton<GameManager>
 
         foreach (var subSystem in sortedSubSystems)
         {
-            ct.ThrowIfCancellationRequested();
-
             EventBus<SubSystemInitializationStartEvent>.Raise(
                 new SubSystemInitializationStartEvent
                 {
@@ -123,24 +117,25 @@ public class GameManager : PersistentSingleton<GameManager>
 
             try
             {
-                // 创建进度报告器，将子系统进度映射到总进度
-                var subSystemProgress = new Progress<float>(
-                    (p) =>
+                var subSystemProgress = new Progress<float>(p =>
+                {
+                    p = Mathf.Clamp01(p);
+
+                    float totalProgress = (completedSystems + p) / (float)totalSubSystems;
+                    totalProgress = Mathf.Clamp01(totalProgress);
+
+                    progress?.Report(totalProgress);
+
+                    EventBus<SubSystemInitializationProgressEvent>.Raise(new SubSystemInitializationProgressEvent
                     {
-                        float totalProgress = (completedSystems + p) / totalSubSystems;
-                        progress?.Report(totalProgress);
+                        subSystemName = subSystem.Name,
+                        progress = p,
+                        totalProgress = totalProgress
+                    });
+                });
 
-                        EventBus<SubSystemInitializationProgressEvent>.Raise(
-                            new SubSystemInitializationProgressEvent
-                            {
-                                progress = p,
-                                totalProgress = totalProgress
-                            }
-                        );
-                    }
-                );
 
-                await subSystem.InitializeAsync(subSystemProgress, ct);
+                await subSystem.InitializeAsync(subSystemProgress);
 
                 isSuccess = subSystem.IsInitialized;
 
@@ -186,7 +181,12 @@ public class GameManager : PersistentSingleton<GameManager>
                 {
                     completedSystems++;
                 }
-                progress?.Report((float)completedSystems / totalSubSystems);
+                // 移除这里的重复进度报告，因为 subSystemProgress 回调已经报告过了
+                // 只在最后确保进度是 100%（如果所有系统都完成）
+                if (completedSystems == totalSubSystems)
+                {
+                    progress?.Report(1.0f);
+                }
             }
         }
         Debug.Log($"InitializeSubSystems completed: {completedSystems} / {totalSubSystems} subSystems initialized");
