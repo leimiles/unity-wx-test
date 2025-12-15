@@ -13,5 +13,5 @@ public interface ISubSystem
     public bool IsInitialized { get; }
     public event Action OnInitialized;
     public event Action<string> OnInitializeFailed;
-    public UniTask InitializeAsync(CancellationToken ct = default);
+    public UniTask InitializeAsync(IProgress<float> progress, CancellationToken ct = default);
 }

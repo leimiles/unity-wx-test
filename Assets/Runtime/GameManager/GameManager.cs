@@ -30,6 +30,15 @@ public class GameManager : PersistentSingleton<GameManager>
         StartBootSequence(e.bootstrapConfigs).Forget();
     }
 
+    void OnDestroy()
+    {
+        if (_bootstrapStartBinding != null)
+        {
+            EventBus<BootstrapStartEvent>.Deregister(_bootstrapStartBinding);
+            _bootstrapStartBinding = null;
+        }
+    }
+
     async UniTaskVoid StartBootSequence(BootstrapConfigs bootstrapConfigs)
     {
         _bootStartTime = Time.realtimeSinceStartup;
@@ -43,6 +52,10 @@ public class GameManager : PersistentSingleton<GameManager>
                 (p) =>
                 {
                     Debug.Log($"Boot progress: {p * 100:F1}%");
+                    if (p > 1.0)
+                    {
+                        Debug.LogError("Boot progress reported greater than 100%");
+                    }
                 }
             );
 
@@ -78,10 +91,21 @@ public class GameManager : PersistentSingleton<GameManager>
     async UniTask InitializeSubSystems(IProgress<float> progress, CancellationToken ct = default)
     {
         int totalSubSystems = _subSystems.Count;
+        if (totalSubSystems <= 0)
+        {
+            Debug.LogWarning("No subSystems to initialize");
+            progress?.Report(1.0f);
+            return;
+        }
+
         int completedSystems = 0;
         Debug.Log($"InitializeSubSystems start, total {totalSubSystems} subSystems");
 
-        foreach (var subSystem in _subSystems.Values)
+        // 先按照优先级排序
+        var sortedSubSystems = new List<ISubSystem>(_subSystems.Values);
+        sortedSubSystems.Sort((a, b) => a.Priority.CompareTo(b.Priority));
+
+        foreach (var subSystem in sortedSubSystems)
         {
             ct.ThrowIfCancellationRequested();
 
@@ -94,30 +118,35 @@ public class GameManager : PersistentSingleton<GameManager>
 
             Debug.Log($"SubSystem {subSystem.Name} initialization started");
 
+            string errorMessage = null;
+            bool isSuccess = false;
+
             try
             {
-                var initTask = subSystem.InitializeAsync();
-                while (!initTask.GetAwaiter().IsCompleted)
+                // 创建进度报告器，将子系统进度映射到总进度
+                var subSystemProgress = new Progress<float>(
+                    (p) =>
+                    {
+                        float totalProgress = (completedSystems + p) / totalSubSystems;
+                        progress?.Report(totalProgress);
+
+                        EventBus<SubSystemInitializationProgressEvent>.Raise(
+                            new SubSystemInitializationProgressEvent
+                            {
+                                progress = p,
+                                totalProgress = totalProgress
+                            }
+                        );
+                    }
+                );
+
+                await subSystem.InitializeAsync(subSystemProgress, ct);
+
+                isSuccess = subSystem.IsInitialized;
+
+                if (!isSuccess)
                 {
-                    float totalProgress = (completedSystems + subSystem.Progress) / totalSubSystems;
-                    progress?.Report(totalProgress);
-
-
-                    EventBus<SubSystemInitializationProgressEvent>.Raise(
-                        new SubSystemInitializationProgressEvent
-                        {
-                            progress = subSystem.Progress,
-                            totalProgress = totalProgress
-                        }
-                    );
-
-                    await UniTask.Yield(ct);
-                }
-
-                await initTask;
-
-                if (!subSystem.IsInitialized)
-                {
+                    errorMessage = $"SubSystem {subSystem.Name} initialization failed";
                     if (subSystem.IsRequired)
                     {
                         throw new Exception($"SubSystem {subSystem.Name} initialization failed, but it is required");
@@ -127,32 +156,40 @@ public class GameManager : PersistentSingleton<GameManager>
                 {
                     Debug.Log($"SubSystem {subSystem.Name} initialization completed");
                 }
-
-                EventBus<SubSystemInitializationCompleteEvent>.Raise(
-                    new SubSystemInitializationCompleteEvent
-                    {
-                        subSystemName = subSystem.Name,
-                        isSuccess = subSystem.IsInitialized,
-                        message = subSystem.IsInitialized ? "Initialization completed" : "Initialization failed"
-                    }
-                );
-
-                completedSystems++;
-                progress?.Report((float)completedSystems / totalSubSystems);
             }
             catch (Exception e)
             {
+                isSuccess = false;
+                errorMessage = e.Message;
                 if (subSystem.IsRequired)
                 {
-                    Debug.Log($"SubSystem {subSystem.Name} initialization failed, but it is required, will throw exception");
+                    Debug.LogError($"SubSystem {subSystem.Name} initialization failed: {e.Message}, but it is required, will throw exception");
                     throw;
                 }
                 else
                 {
-                    Debug.Log($"SubSystem {subSystem.Name} initialization failed: {e.Message}, but it is not required, will log error and continue");
+                    Debug.LogError($"SubSystem {subSystem.Name} initialization failed: {e.Message}, but it is not required, will log error and continue");
                 }
             }
+            finally
+            {
+                EventBus<SubSystemInitializationCompleteEvent>.Raise(
+                    new SubSystemInitializationCompleteEvent
+                    {
+                        subSystemName = subSystem.Name,
+                        isSuccess = isSuccess,
+                        message = isSuccess ? "Initialization completed" : (errorMessage ?? "Initialization failed")
+                    }
+                );
+
+                if (isSuccess)
+                {
+                    completedSystems++;
+                }
+                progress?.Report((float)completedSystems / totalSubSystems);
+            }
         }
+        Debug.Log($"InitializeSubSystems completed: {completedSystems} / {totalSubSystems} subSystems initialized");
     }
 
     void CreateSubSystems(BootstrapConfigs bootstrapConfigs)

@@ -22,17 +22,37 @@ public class Bootstrap : MonoBehaviour
     {
         try
         {
+            if (bootstrapConfigs == null)
+            {
+                Debug.LogError("BootstrapConfigs is null, cannot start bootstrap");
+                EventBus<BootstrapCompleteEvent>.Raise(
+                    new BootstrapCompleteEvent
+                    {
+                        isSuccess = false,
+                        message = "BootstrapConfigs is null",
+                        totalTime = 0f
+                    }
+                );
+                return;
+            }
+
             bootstrapConfigs.Validate();
             var gameManager = GameManager.Instance; // 确保 GameManager 已经初始化
             EventBus<BootstrapStartEvent>.Raise(
                 new BootstrapStartEvent { bootstrapConfigs = bootstrapConfigs }
             );
-
-            // 暂时不需要 GameManager 的实例，因为 GameManager 是 PersistentSingleton，会自动在启动时创建实例
         }
         catch (System.Exception e)
         {
-            Debug.LogError(e);
+            Debug.LogError($"Bootstrap Start failed: {e}");
+            EventBus<BootstrapCompleteEvent>.Raise(
+                new BootstrapCompleteEvent
+                {
+                    isSuccess = false,
+                    message = e.Message,
+                    totalTime = 0f
+                }
+            );
         }
     }
 
