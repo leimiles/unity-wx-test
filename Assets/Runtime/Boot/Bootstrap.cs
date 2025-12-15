@@ -23,12 +23,12 @@ public class Bootstrap : MonoBehaviour
         try
         {
             bootstrapConfigs.Validate();
+            var gameManager = GameManager.Instance; // 确保 GameManager 已经初始化
             EventBus<BootstrapStartEvent>.Raise(
                 new BootstrapStartEvent { bootstrapConfigs = bootstrapConfigs }
             );
 
             // 暂时不需要 GameManager 的实例，因为 GameManager 是 PersistentSingleton，会自动在启动时创建实例
-            //var gameManager = GameManager.Instance;
         }
         catch (System.Exception e)
         {

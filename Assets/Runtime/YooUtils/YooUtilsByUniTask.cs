@@ -7,15 +7,31 @@ using Cysharp.Threading.Tasks;
 using System.Threading;
 using UnityEngine.Networking;
 
-public class YooUtilsByUniTask
+public class YooUtilsByUniTask : ISubSystem
 {
+    /// <summary>
+    /// 子系统名称
+    /// </summary>
+    public string Name => "YooUtils";
+    public int Priority => 1;
+    /// <summary>
+    /// 是否必须
+    /// </summary>
+    public bool IsRequired => true;
+    /// <summary>
+    /// 进度
+    /// </summary>
+    public float Progress => isInitialized ? 1.0f : 0.0f;
+    /// <summary>
+    /// 是否初始化完成
+    /// </summary>
+    public bool IsInitialized => isInitialized;
     readonly YooUtilsSettings settings;
     bool isInitialized = false;
     ResourcePackage currentPackage;
     public event Action OnInitialized;
     public event Action<string> OnInitializeFailed;
     UniTask? _initTask;
-
     Dictionary<string, AssetHandleInfo> activeHandles = new();
 
     class AssetHandleInfo
