@@ -7,7 +7,7 @@ using System;
 public class GameManager : PersistentSingleton<GameManager>
 {
     EventBinding<BootstrapStartEvent> _bootstrapStartBinding;
-    Dictionary<string, ISubSystem> _subSystems = new();
+    List<ISubSystem> _subSystems = new();
     float _bootStartTime;
 
     protected override void Awake()
@@ -38,7 +38,7 @@ public class GameManager : PersistentSingleton<GameManager>
         }
     }
 
-    async UniTaskVoid StartBootSequence(BootstrapConfigs bootstrapConfigs)
+    async UniTask StartBootSequence(BootstrapConfigs bootstrapConfigs)
     {
         _bootStartTime = Time.realtimeSinceStartup;
         Debug.Log($"Boot start at {_bootStartTime}");
@@ -97,11 +97,10 @@ public class GameManager : PersistentSingleton<GameManager>
         int completedSystems = 0;
         Debug.Log($"InitializeSubSystems start, total {totalSubSystems} subSystems");
 
-        // 先按照优先级排序
-        var sortedSubSystems = new List<ISubSystem>(_subSystems.Values);
-        sortedSubSystems.Sort((a, b) => a.Priority.CompareTo(b.Priority));
+        // 只在初始化前排序一次
+        _subSystems.Sort((a, b) => a.Priority.CompareTo(b.Priority));
 
-        foreach (var subSystem in sortedSubSystems)
+        foreach (var subSystem in _subSystems)
         {
             EventBus<SubSystemInitializationStartEvent>.Raise(
                 new SubSystemInitializationStartEvent
@@ -225,13 +224,15 @@ public class GameManager : PersistentSingleton<GameManager>
             return;
         }
 
-        if (!_subSystems.TryAdd(name, subSystem))
+        if (_subSystems.Contains(subSystem))
         {
-            Debug.LogError($"SubSystem {name} already registered, can't register again");
+            Debug.LogError($"SubSystem {subSystem.Name} already registered, can't register again");
             return;
         }
+        // 只添加，不排序
+        _subSystems.Add(subSystem);
 
-        Debug.Log($"SubSystem {name} registered successfully");
+        Debug.Log($"SubSystem {subSystem.Name} registered successfully");
     }
 
 }
