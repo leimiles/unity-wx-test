@@ -703,7 +703,7 @@ public class YooUtils : PersistentSingleton<YooUtils>
         if (buildTarget == UnityEditor.BuildTarget.Android)
             return "Android";
         else if (buildTarget == UnityEditor.BuildTarget.iOS)
-            return "iPhone";
+            return "iOS";
         else if (buildTarget == UnityEditor.BuildTarget.WebGL)
             return "WebGL";
         else
@@ -712,7 +712,7 @@ public class YooUtils : PersistentSingleton<YooUtils>
         if (Application.platform == RuntimePlatform.Android)
             return "Android";
         else if (Application.platform == RuntimePlatform.IPhonePlayer)
-            return "iPhone";
+            return "iOS";
         else if (Application.platform == RuntimePlatform.WebGLPlayer)
             return "WebGL";
         else
