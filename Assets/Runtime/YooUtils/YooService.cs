@@ -3,12 +3,17 @@ using YooAsset;
 using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine.Networking;
-
+using System.Collections.Generic;
 
 public interface IYooService
 {
     bool IsInitialized { get; }
     UniTask InitializeAsync(IProgress<float> progress);
+
+    // 资源加载
+    UniTask<T> LoadAssetAsync<T>(string address) where T : UnityEngine.Object;
+    void ReleaseAsset(string address);
+    int GetActiveHandleCount();
 }
 
 public sealed class YooService : IYooService
@@ -18,8 +23,21 @@ public sealed class YooService : IYooService
 
     readonly YooUtilsSettings settings;
     ResourcePackage currentPackage;
-    private readonly object _initGate = new object();
+    private readonly object _initGate = new();
     private UniTaskCompletionSource _initTcs;
+
+    private readonly Dictionary<string, AssetHandleInfo> activeHandles = new();
+    private readonly object _handlesGate = new();
+    class AssetHandleInfo
+    {
+        public AssetHandle Handle { get; set; }
+        public int RefCount { get; set; }
+        public AssetHandleInfo(AssetHandle handle)
+        {
+            Handle = handle;
+            RefCount = 1;
+        }
+    }
 
     public YooService(YooUtilsSettings yooUtilsSettings)
     {
@@ -244,6 +262,62 @@ public sealed class YooService : IYooService
 
     }
 
+    /// <summary>
+    /// 异步加载资源（UniTask 方式，带引用计数机制）
+    /// </summary>
+    public async UniTask<T> LoadAssetAsync<T>(string address) where T : UnityEngine.Object
+    {
+
+        if (!_isInitialized || currentPackage == null)
+            throw new InvalidOperationException($"[YooService] Not ready. IsInitialized={_isInitialized}, address={address}");
+
+
+        AssetHandleInfo handleInfo = null;
+
+        // 检查是否已存在
+        lock (_handlesGate)
+        {
+            if (activeHandles.TryGetValue(address, out var existingHandleInfo))
+            {
+                handleInfo = existingHandleInfo;
+                handleInfo.RefCount++;
+                Debug.Log($"[YooService] 资源已加载，引用计数: {handleInfo.RefCount}: {address}");
+            }
+            else
+            {
+                // 创建新的句柄
+                Debug.Log($"[YooService] 开始异步加载资源: {address}");
+                var handle = currentPackage.LoadAssetAsync<T>(address);
+                handleInfo = new AssetHandleInfo(handle);
+                activeHandles[address] = handleInfo;
+            }
+        }
+
+        // 等待加载完成
+        await handleInfo.Handle.ToUniTask();
+
+        // 检查加载结果
+        if (handleInfo.Handle.Status == EOperationStatus.Succeed)
+        {
+            return handleInfo.Handle.AssetObject as T;
+        }
+        else
+        {
+            // 加载失败，清理句柄
+            Debug.LogError($"[YooService] 加载失败: {address} - {handleInfo.Handle.LastError}");
+            lock (_handlesGate)
+            {
+                if (activeHandles.TryGetValue(address, out var info) && info == handleInfo)
+                {
+                    activeHandles.Remove(address);
+                }
+            }
+            var error = handleInfo.Handle.LastError;
+            handleInfo.Handle.Release();
+            throw new Exception($"资源加载失败: {address} - {error}");
+        }
+    }
+
     async UniTask<bool> TestNetworkConnection(string cdnBaseUrl)
     {
         string testUrl = $"{cdnBaseUrl}/{settings.networkVerifiedAssetName}";
@@ -285,6 +359,45 @@ public sealed class YooService : IYooService
                 break;
         }
         return success;
+    }
+
+    /// <summary>
+    /// 释放资源句柄（带引用计数机制）
+    /// </summary>
+    public void ReleaseAsset(string address)
+    {
+        lock (_handlesGate)
+        {
+            if (activeHandles.TryGetValue(address, out var handleInfo))
+            {
+                handleInfo.RefCount--;
+                if (handleInfo.RefCount <= 0)
+                {
+                    handleInfo.Handle.Release();
+                    activeHandles.Remove(address);
+                    Debug.Log($"[YooService] 已释放资源: {address}");
+                }
+                else
+                {
+                    Debug.Log($"[YooService] 资源引用计数减少: {handleInfo.RefCount}: {address}");
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"[YooService] 未找到资源句柄: {address}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// 获取当前活跃的资源句柄数量
+    /// </summary>
+    public int GetActiveHandleCount()
+    {
+        lock (_handlesGate)
+        {
+            return activeHandles.Count;
+        }
     }
 
     string GetHostServerURL(string baseUrl)
