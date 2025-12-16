@@ -26,24 +26,6 @@ public sealed class YooService : IYooService
         settings = yooUtilsSettings != null ? yooUtilsSettings : throw new ArgumentNullException(nameof(yooUtilsSettings));
     }
 
-
-    // public UniTask InitializeAsync(IProgress<float> progress)
-    // {
-    //     if (IsInitialized)
-    //     {
-    //         progress?.Report(1.0f);
-    //         return UniTask.CompletedTask;
-    //     }
-
-    //     if (!_initTask.HasValue)
-    //     {
-    //         // 第一次调用：启动初始化（使用内部的 CTS，不受外部取消影响）
-    //         // 初始化过程一旦开始就不应该被取消
-    //         _initTask = InitializeInternalAsync(progress);
-    //     }
-    //     return _initTask.Value;
-    // }
-
     public UniTask InitializeAsync(IProgress<float> progress)
     {
         if (_isInitialized)
@@ -93,7 +75,6 @@ public sealed class YooService : IYooService
             }
         }
     }
-
 
     async UniTask InitializeInternalAsync(IProgress<float> progress)
     {
@@ -263,7 +244,6 @@ public sealed class YooService : IYooService
 
     }
 
-
     async UniTask<bool> TestNetworkConnection(string cdnBaseUrl)
     {
         string testUrl = $"{cdnBaseUrl}/{settings.networkVerifiedAssetName}";
@@ -334,7 +314,6 @@ public sealed class YooService : IYooService
         };
 #endif
     }
-
 
     class RemoteServices : IRemoteServices
     {
