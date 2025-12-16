@@ -96,6 +96,8 @@ public class YooBootstrap : MonoBehaviour
             };
             initOperation = package.InitializeAsync(createParameters);
         }
+
+#if UNITY_WEBGL && WEIXINMINIGAME
         else if (playMode == EPlayMode.CustomPlayMode)
         {
             // Use CustomPlayMode as WX MiniGame
@@ -106,6 +108,7 @@ public class YooBootstrap : MonoBehaviour
             };
             initOperation = package.InitializeAsync(createParameters);
         }
+#endif
         else
         {
             Debug.LogError($"不支持的运行模式: {playMode}，请使用 HostPlayMode 或 WebPlayMode");

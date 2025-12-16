@@ -148,6 +148,7 @@ public class YooUtilsByUniTask : ISubSystem
                     };
                     initOperation = currentPackage.InitializeAsync(createParametersWeb);
                     break;
+#if UNITY_WEBGL && WEIXINMINIGAME
                 case EPlayMode.CustomPlayMode:
                     string packageRoot = $"{WeChatWASM.WX.env.USER_DATA_PATH}/_GAME_FILE_CACHE/yoo";
                     var createParametersCustom = new WebPlayModeParameters
@@ -156,6 +157,7 @@ public class YooUtilsByUniTask : ISubSystem
                     };
                     initOperation = currentPackage.InitializeAsync(createParametersCustom);
                     break;
+#endif
                 default:
                     throw new System.Exception($"Unsupported play mode: {settings.playMode}");
             }

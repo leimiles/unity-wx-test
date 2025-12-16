@@ -166,6 +166,7 @@ public class YooUtils : PersistentSingleton<YooUtils>
                 };
                 initOperation = currentPackage.InitializeAsync(createParameters);
             }
+#if UNITY_WEBGL && WEIXINMINIGAME
             else if (playMode == EPlayMode.CustomPlayMode)
             {
                 // Use CustomPlayMode as WX MiniGame
@@ -176,6 +177,7 @@ public class YooUtils : PersistentSingleton<YooUtils>
                 };
                 initOperation = currentPackage.InitializeAsync(createParameters);
             }
+#endif
             else
             {
                 string error = $"不支持的运行模式: {playMode}，请使用 HostPlayMode、WebPlayMode 或 CustomPlayMode";
