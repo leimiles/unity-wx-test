@@ -72,7 +72,7 @@ public sealed class GameServices : IGameServices
 
         throw new KeyNotFoundException(
             $"Service not registered: {typeof(T).FullName}. " +
-            $"Make sure it is registered in Boot/CompositionRoot before use."
+            $"Make sure it is registered in GameManager before use."
         );
     }
 
