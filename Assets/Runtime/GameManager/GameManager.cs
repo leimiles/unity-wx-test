@@ -8,11 +8,14 @@ public class GameManager : PersistentSingleton<GameManager>
 {
     EventBinding<BootstrapStartEvent> _bootstrapStartBinding;
     List<ISubSystem> _subSystems = new();
+    public IGameServices Services { get; private set; }
     float _bootStartTime;
 
     protected override void Awake()
     {
         base.Awake();
+
+        Services = new GameServices();
 
         _bootstrapStartBinding = new EventBinding<BootstrapStartEvent>(OnBootstrapStart);
         EventBus<BootstrapStartEvent>.Register(_bootstrapStartBinding);
@@ -86,7 +89,6 @@ public class GameManager : PersistentSingleton<GameManager>
             );
         }
     }
-
 
     async UniTask InitializeSubSystems(IProgress<float> progress)
     {
@@ -191,8 +193,10 @@ public class GameManager : PersistentSingleton<GameManager>
         //1. 创建 YooUtilsSubSystem
         if (bootstrapConfigs.yooUtilsSettings != null)
         {
-            IYooService yooService = new YooService(bootstrapConfigs.yooUtilsSettings);
-            YooSubSystem yooSubSystem = new(yooService);
+            var yooService = new YooService(bootstrapConfigs.yooUtilsSettings);
+            Services.Register<IYooService>(yooService);
+
+            var yooSubSystem = new YooSubSystem(Services.Get<IYooService>());
             RegisterSubSystem(yooSubSystem);
         }
         else
