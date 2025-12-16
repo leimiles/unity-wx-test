@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b43914c121f3e4a9989bb3233c342af0, type: 3}
   m_Name: BootstrapConfigs
   m_EditorClassIdentifier: 
-  yooUtilsSettings: {fileID: 11400000, guid: ca576bd5a11ee4f87b9d9c0cf4d1b135, type: 2}
+  yooUtilsSettings: {fileID: 11400000, guid: 53e7107767b8f47f58af3006fa50e434, type: 2}
   gameSceneManagerSettings: {fileID: 11400000, guid: f950a7dd4a07a4d0ba3c3255f16ac646,
     type: 2}
