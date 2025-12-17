@@ -58,6 +58,14 @@ public class GameManager : PersistentSingleton<GameManager>
                 if (p < last + 0.01f && p < 1f) return;
                 last = p;
 
+                EventBus<BootstrapProgressEvent>.Raise(
+                    new BootstrapProgressEvent
+                    {
+                        progress = p,
+                        message = "Bootstrap progress"
+                    }
+                );
+
                 Debug.Log($"boot progress: {p * 100:F1}%");
             });
 
