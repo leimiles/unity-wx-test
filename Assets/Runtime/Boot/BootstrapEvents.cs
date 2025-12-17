@@ -14,3 +14,9 @@ public struct BootstrapStartEvent : IEvent
 {
     public BootstrapConfigs bootstrapConfigs;
 }
+
+public struct BootstrapProgressEvent : IEvent
+{
+    public float progress;
+    public string message;
+}

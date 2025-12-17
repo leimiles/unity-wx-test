@@ -22,6 +22,7 @@ public class Bootstrap : MonoBehaviour
     {
         try
         {
+            UISubSystem.ShowLoadingUI();
             if (bootstrapConfigs == null)
             {
                 Debug.LogError("BootstrapConfigs is null, cannot start bootstrap");
