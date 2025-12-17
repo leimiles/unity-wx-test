@@ -160,6 +160,22 @@ public sealed class YooService : IYooService
 
             switch (settings.playMode)
             {
+                case EPlayMode.EditorSimulateMode:
+                    var buildResult = EditorSimulateModeHelper.SimulateBuild(settings.packageName);
+                    var packageRoot = buildResult.PackageRootDirectory;
+                    var createParameters = new EditorSimulateModeParameters
+                    {
+                        EditorFileSystemParameters = FileSystemParameters.CreateDefaultEditorFileSystemParameters(packageRoot)
+                    };
+                    initOperation = currentPackage.InitializeAsync(createParameters);
+                    break;
+                case EPlayMode.OfflinePlayMode:
+                    var createParametersOffline = new OfflinePlayModeParameters
+                    {
+                        BuildinFileSystemParameters = FileSystemParameters.CreateDefaultBuildinFileSystemParameters()
+                    };
+                    initOperation = currentPackage.InitializeAsync(createParametersOffline);
+                    break;
                 case EPlayMode.HostPlayMode:
                     var createParametersHost = new HostPlayModeParameters
                     {
