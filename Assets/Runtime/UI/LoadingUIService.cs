@@ -1,64 +1,42 @@
 using UnityEngine;
 
-internal class LoadingUIService
+public sealed class LoadingUIService
 {
-    static GameObject _loadingUIPrefab;
-    static GameObject _loadingUIInstance;
-
     static LoadingUIService _instance;
     public static LoadingUIService Instance => _instance ??= new LoadingUIService();
 
-    bool _eventsRegistered;
-    EventBinding<BootstrapProgressEvent> _progressBinding;
-    EventBinding<BootstrapCompleteEvent> _completeBinding;
+    static GameObject _prefab;
+    static GameObject _instanceGO;
 
-    public void Show()
+    const string kPath = "UI/Canvas_Loading";
+
+    public void ShowLoadingUI()
     {
-        RegisterEventsOnce();
+        if (_instanceGO != null) return;
 
-        if (_loadingUIInstance != null)
-            return;
-
-        _loadingUIPrefab ??= Resources.Load<GameObject>("UI/Canvas_Loading");
-
-        if (_loadingUIPrefab == null)
+        _prefab ??= Resources.Load<GameObject>(kPath);
+        if (_prefab == null)
         {
-            Debug.LogError("Loading UI prefab not found");
+            Debug.LogError($"Loading UI prefab not found: Resources/{kPath}.prefab");
             return;
         }
 
-        _loadingUIInstance = GameObject.Instantiate(_loadingUIPrefab);
-
-        GameObject.DontDestroyOnLoad(_loadingUIInstance);
+        _instanceGO = Object.Instantiate(_prefab);
+        _instanceGO.name = "[BootstrapUI] Loading";
+        GameObject.DontDestroyOnLoad(_instanceGO);
     }
 
-    void RegisterEventsOnce()
+    // 可选：给 BootstrapComplete 或外部显式退场用
+    public void Hide()
     {
-        if (_eventsRegistered) return;
-        _eventsRegistered = true;
-
-        _progressBinding = new EventBinding<BootstrapProgressEvent>(OnBootProgress);
-        EventBus<BootstrapProgressEvent>.Register(_progressBinding);
-
-        _completeBinding = new EventBinding<BootstrapCompleteEvent>(OnBootComplete);
-        EventBus<BootstrapCompleteEvent>.Register(_completeBinding);
+        if (_instanceGO == null) return;
+        _instanceGO.SetActive(false);
     }
 
-    void OnBootProgress(BootstrapProgressEvent e)
+    public void Destroy()
     {
-        _loadingUIInstance.GetComponent<LoadingUI>().SetProgress(e.progress);
-    }
-
-    void OnBootComplete(BootstrapCompleteEvent e)
-    {
-        if (!e.isSuccess) return;
-        if (_loadingUIInstance == null) return;
-
-        //_loadingUIInstance.SetActive(false);
-
-        // 可选：你如果希望彻底收口（避免泄漏），可以在成功后解绑：
-        // EventBus<BootstrapProgressEvent>.Deregister(_progressBinding);
-        // EventBus<BootstrapCompleteEvent>.Deregister(_completeBinding);
-        // _eventsRegistered = false;
+        if (_instanceGO == null) return;
+        Object.Destroy(_instanceGO);
+        _instanceGO = null;
     }
 }
