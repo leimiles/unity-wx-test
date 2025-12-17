@@ -4,30 +4,63 @@ using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine.Networking;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 
 public interface IYooService
 {
     bool IsInitialized { get; }
+
     UniTask InitializeAsync(IProgress<float> progress);
 
     // 资源加载
     UniTask<T> LoadAssetAsync<T>(string address) where T : UnityEngine.Object;
-    void ReleaseAsset(string address);
+
+    void ReleaseAsset<T>(string address);
+
     int GetActiveHandleCount();
+
+    // 场景加载
+    UniTask<SceneHandle> LoadSceneAsync(string sceneName, LoadSceneMode loadMode = LoadSceneMode.Single);
+
+    // 批量预加载
+    UniTask<int> PreloadAssetsAsync<T>(string[] addresses, IProgress<(int loaded, int total)> progress = null) where T : UnityEngine.Object;
+
+    // 检查资源是否存在
+    bool CheckAssetExists(string address);
+
+    // 获取资源信息
+    AssetInfo GetAssetInfo(string address);
+
+    // 获取资源包信息
+    PackageDetails GetPackageInfo();
+
+    void ReleaseAllAssets();
+
+    // 资源下载和管理
+    ResourceDownloaderOperation CreateDownloader(int downloadingMaxNumber = 10, int failedTryAgain = 3);
+    bool CheckNeedDownload(out int totalCount, out long totalBytes);
+    UniTask DownloadResourcesAsync(IProgress<float> progress = null);
+    UniTask UnloadUnusedAssetsAsync(IProgress<float> progress = null);
 }
 
 public sealed class YooService : IYooService
 {
     private volatile bool _isInitialized;
+
     public bool IsInitialized => _isInitialized;
 
     readonly YooUtilsSettings settings;
+
     ResourcePackage currentPackage;
+
     private readonly object _initGate = new();
+
     private UniTaskCompletionSource _initTcs;
 
-    private readonly Dictionary<string, AssetHandleInfo> activeHandles = new();
+    private readonly Dictionary<AssetKey, AssetHandleInfo> activeHandles = new();
+
     private readonly object _handlesGate = new();
+
     class AssetHandleInfo
     {
         public AssetHandle Handle { get; set; }
@@ -37,6 +70,28 @@ public sealed class YooService : IYooService
             Handle = handle;
             RefCount = 1;
         }
+    }
+
+    public readonly struct AssetKey : IEquatable<AssetKey>
+    {
+        public readonly string Address;
+        public readonly Type Type;
+
+        public AssetKey(string address, Type type)
+        {
+            Address = address ?? throw new ArgumentNullException(nameof(address));
+            Type = type ?? throw new ArgumentNullException(nameof(type));
+        }
+
+        public bool Equals(AssetKey other) =>
+            string.Equals(Address, other.Address, StringComparison.Ordinal) &&
+            Type == other.Type;
+
+        public override bool Equals(object obj) =>
+            obj is AssetKey other && Equals(other);
+
+        public override int GetHashCode() =>
+            HashCode.Combine(Address, Type);
     }
 
     public YooService(YooUtilsSettings yooUtilsSettings)
@@ -283,20 +338,24 @@ public sealed class YooService : IYooService
     /// </summary>
     public async UniTask<T> LoadAssetAsync<T>(string address) where T : UnityEngine.Object
     {
-
         if (!_isInitialized || currentPackage == null)
             throw new InvalidOperationException($"[YooService] Not ready. IsInitialized={_isInitialized}, address={address}");
 
-
         AssetHandleInfo handleInfo = null;
+        bool addedRef = false; // 标记是否增加了引用计数
+        bool isNewHandle = false; // 标记是否是新创建的句柄
+
+        AssetKey key = new AssetKey(address, typeof(T));
 
         // 检查是否已存在
         lock (_handlesGate)
         {
-            if (activeHandles.TryGetValue(address, out var existingHandleInfo))
+            if (activeHandles.TryGetValue(key, out var existingHandleInfo))
             {
+                // 资源已存在，增加引用计数
                 handleInfo = existingHandleInfo;
                 handleInfo.RefCount++;
+                addedRef = true; // 标记已增加引用
                 Debug.Log($"[YooService] 资源已加载，引用计数: {handleInfo.RefCount}: {address}");
             }
             else
@@ -305,7 +364,9 @@ public sealed class YooService : IYooService
                 Debug.Log($"[YooService] 开始异步加载资源: {address}");
                 var handle = currentPackage.LoadAssetAsync<T>(address);
                 handleInfo = new AssetHandleInfo(handle);
-                activeHandles[address] = handleInfo;
+                activeHandles[key] = handleInfo;
+                isNewHandle = true; // 标记是新创建的句柄
+                // 新建时 RefCount 初始为 1，不需要额外增加
             }
         }
 
@@ -315,23 +376,135 @@ public sealed class YooService : IYooService
         // 检查加载结果
         if (handleInfo.Handle.Status == EOperationStatus.Succeed)
         {
-            return handleInfo.Handle.AssetObject as T;
+            var asset = handleInfo.Handle.AssetObject as T ?? throw new InvalidCastException(
+                    $"Asset '{address}' is not of type {typeof(T).Name}");
+            return asset;
+
         }
         else
         {
-            // 加载失败，清理句柄
+            // 加载失败，需要回滚引用计数或清理句柄
             Debug.LogError($"[YooService] 加载失败: {address} - {handleInfo.Handle.LastError}");
+
+
             lock (_handlesGate)
             {
-                if (activeHandles.TryGetValue(address, out var info) && info == handleInfo)
+                // 再次检查句柄是否还在字典中（可能被其他线程移除）
+                if (activeHandles.TryGetValue(key, out var info) && info == handleInfo)
                 {
-                    activeHandles.Remove(address);
+                    if (addedRef)
+                    {
+                        // 回滚之前增加的引用计数
+                        handleInfo.RefCount--;
+                        Debug.Log($"[YooService] 加载失败，回滚引用计数: {handleInfo.RefCount}: {address}");
+                    }
+                    else if (isNewHandle)
+                    {
+                        // 新创建的句柄失败，从字典中移除
+                        activeHandles.Remove(key);
+                        Debug.Log($"[YooService] 新句柄加载失败，已移除: {address}");
+                    }
                 }
             }
+
             var error = handleInfo.Handle.LastError;
-            handleInfo.Handle.Release();
+
+            // 如果是新创建的句柄，需要释放
+            if (isNewHandle)
+            {
+                handleInfo.Handle.Release();
+            }
+
             throw new Exception($"资源加载失败: {address} - {error}");
         }
+    }
+
+    /// <summary>
+    /// 异步加载场景（UniTask 方式）
+    /// 注意：激活场景要使用 await sceneHandle.ActivateAsync();
+    /// 注意：释放场景要使用 await sceneHandle.UnloadAsync();
+    /// </summary>
+    public async UniTask<SceneHandle> LoadSceneAsync(string sceneName, LoadSceneMode loadMode = LoadSceneMode.Single)
+    {
+        if (!_isInitialized || currentPackage == null)
+        {
+            throw new InvalidOperationException($"[YooService] 未初始化，无法加载场景: {sceneName}");
+        }
+
+        Debug.Log($"[YooService] 开始加载场景: {sceneName}, LoadMode: {loadMode}");
+        var handle = currentPackage.LoadSceneAsync(sceneName, loadMode);
+
+        // 等待加载完成
+        await handle.ToUniTask();
+
+        // 检查加载结果
+        if (handle.Status == EOperationStatus.Succeed)
+        {
+            Debug.Log($"[YooService] 场景加载成功: {sceneName}");
+            return handle;
+        }
+        else
+        {
+            Debug.LogError($"[YooService] 场景加载失败: {sceneName} - {handle.LastError}");
+            handle.Release();
+            throw new Exception($"场景加载失败: {sceneName} - {handle.LastError}");
+        }
+    }
+
+    /// <summary>
+    /// 批量预加载资源（UniTask 方式）
+    /// </summary>
+    /// <typeparam name="T">资源类型</typeparam>
+    /// <param name="addresses">资源地址数组</param>
+    /// <param name="progress">进度回调，参数为 (已加载数量, 总数量)</param>
+    /// 预加载时：调用 LoadAssetAsync，资源加载到内存，引用计数 = 1
+    /// 使用时：再次调用 LoadAssetAsync，检测到已加载，直接返回资源对象，引用计数 +1
+    /// 释放时：调用 ReleaseAsset，引用计数 -1；当引用计数 = 0 时，资源真正释放
+    /// <returns>成功加载的资源数量</returns>
+    public async UniTask<int> PreloadAssetsAsync<T>(
+        string[] addresses,
+        IProgress<(int loaded, int total)> progress = null)
+        where T : UnityEngine.Object
+    {
+        if (!_isInitialized || currentPackage == null)
+        {
+            throw new InvalidOperationException("[YooService] 未初始化，无法预加载资源");
+        }
+
+        if (addresses == null || addresses.Length == 0)
+        {
+            Debug.LogWarning("[YooService] 预加载资源列表为空");
+            return 0;
+        }
+
+        int total = addresses.Length;
+        int loaded = 0;
+        int successCount = 0;
+
+        Debug.Log($"[YooService] 开始预加载 {total} 个资源");
+
+        foreach (var address in addresses)
+        {
+            try
+            {
+                // 使用已有的 LoadAssetAsync 方法，它会自动处理引用计数
+                await LoadAssetAsync<T>(address);
+                successCount++;
+                loaded++;
+                progress?.Report((loaded, total));
+                Debug.Log($"[YooService] 预加载成功 ({loaded}/{total}): {address}");
+            }
+            catch (Exception ex)
+            {
+                loaded++;
+                progress?.Report((loaded, total));
+                Debug.LogError($"[YooService] 预加载失败 ({loaded}/{total}): {address} - {ex.Message}");
+                // 继续加载其他资源，不中断整个流程
+            }
+        }
+
+        Debug.Log($"[YooService] 预加载完成: 成功 {successCount}/{total}");
+        return successCount;
     }
 
     async UniTask<bool> TestNetworkConnection(string cdnBaseUrl)
@@ -377,33 +550,218 @@ public sealed class YooService : IYooService
         return success;
     }
 
-    /// <summary>
-    /// 释放资源句柄（带引用计数机制）
-    /// </summary>
-    public void ReleaseAsset(string address)
+    public void ReleaseAsset<T>(string address)
+    {
+        var key = new AssetKey(address, typeof(T));
+
+        if (!TryReleaseInternal(key, out var refCount))
+        {
+            Debug.LogWarning($"[YooService] ReleaseAsset failed (not loaded): {address} ({typeof(T).Name})");
+            return;
+        }
+
+        if (refCount <= 0)
+            Debug.Log($"[YooService] 已释放资源: {address}");
+        else
+            Debug.Log($"[YooService] 资源引用计数减少: {refCount}: {address}");
+    }
+
+
+    private bool TryReleaseInternal(in AssetKey key, out int newRefCount)
     {
         lock (_handlesGate)
         {
-            if (activeHandles.TryGetValue(address, out var handleInfo))
+            if (!activeHandles.TryGetValue(key, out var handleInfo))
             {
-                handleInfo.RefCount--;
-                if (handleInfo.RefCount <= 0)
-                {
-                    handleInfo.Handle.Release();
-                    activeHandles.Remove(address);
-                    Debug.Log($"[YooService] 已释放资源: {address}");
-                }
-                else
-                {
-                    Debug.Log($"[YooService] 资源引用计数减少: {handleInfo.RefCount}: {address}");
-                }
+                newRefCount = 0;
+                return false;
             }
-            else
+
+            handleInfo.RefCount--;
+            newRefCount = handleInfo.RefCount;
+
+            if (handleInfo.RefCount <= 0)
             {
-                Debug.LogWarning($"[YooService] 未找到资源句柄: {address}");
+                handleInfo.Handle.Release();
+                activeHandles.Remove(key);
             }
+
+            return true;
         }
     }
+
+    /// <summary>
+    /// 检查资源是否存在
+    /// </summary>
+    public bool CheckAssetExists(string address)
+    {
+        if (!_isInitialized || currentPackage == null)
+        {
+            Debug.LogWarning($"[YooService] 未初始化，无法检查资源: {address}");
+            return false;
+        }
+
+        var assetInfo = currentPackage.GetAssetInfo(address);
+        return assetInfo != null;
+    }
+
+    /// <summary>
+    /// 获取资源信息
+    /// </summary>
+    public AssetInfo GetAssetInfo(string address)
+    {
+        if (!_isInitialized || currentPackage == null)
+        {
+            Debug.LogWarning($"[YooService] 未初始化，无法获取资源信息: {address}");
+            return null;
+        }
+
+        return currentPackage.GetAssetInfo(address);
+    }
+
+    /// <summary>
+    /// 获取资源包信息
+    /// </summary>
+    public PackageDetails GetPackageInfo()
+    {
+        if (!_isInitialized || currentPackage == null)
+        {
+            Debug.LogWarning("[YooService] 未初始化，无法获取包信息");
+            return null;
+        }
+
+        return currentPackage.GetPackageDetails();
+    }
+
+    /// <summary>
+    /// 释放所有资源句柄
+    /// </summary>
+    public void ReleaseAllAssets()
+    {
+        lock (_handlesGate)
+        {
+            int count = activeHandles.Count;
+            foreach (var kvp in activeHandles)
+            {
+                kvp.Value.Handle.Release();
+            }
+            activeHandles.Clear();
+            Debug.Log($"[YooService] 已释放所有资源句柄 ({count} 个)");
+        }
+    }
+
+    /// <summary>
+    /// 创建资源下载器（用于下载缺失的资源）
+    /// </summary>
+    public ResourceDownloaderOperation CreateDownloader(int downloadingMaxNumber = 10, int failedTryAgain = 3)
+    {
+        if (!_isInitialized || currentPackage == null)
+        {
+            Debug.LogError("[YooService] 未初始化，无法创建下载器");
+            return null;
+        }
+
+        Debug.Log($"[YooService] 创建资源下载器，最大并发数: {downloadingMaxNumber}, 失败重试次数: {failedTryAgain}");
+        return currentPackage.CreateResourceDownloader(downloadingMaxNumber, failedTryAgain);
+    }
+
+    /// <summary>
+    /// 检查资源是否需要下载
+    /// </summary>
+    public bool CheckNeedDownload(out int totalCount, out long totalBytes)
+    {
+        totalCount = 0;
+        totalBytes = 0;
+
+        if (!_isInitialized || currentPackage == null)
+        {
+            return false;
+        }
+
+        var downloader = CreateDownloader();
+        if (downloader == null)
+        {
+            return false;
+        }
+
+        totalCount = downloader.TotalDownloadCount;
+        totalBytes = downloader.TotalDownloadBytes;
+        return totalCount > 0;
+    }
+
+    /// <summary>
+    /// 下载资源（UniTask 方式，带进度回调）
+    /// </summary>
+    public async UniTask DownloadResourcesAsync(IProgress<float> progress = null)
+    {
+        if (!_isInitialized || currentPackage == null)
+        {
+            throw new InvalidOperationException("[YooService] 未初始化，无法下载资源");
+        }
+
+        var downloader = CreateDownloader();
+        if (downloader == null)
+        {
+            throw new InvalidOperationException("[YooService] 创建下载器失败");
+        }
+
+        if (downloader.TotalDownloadCount == 0)
+        {
+            Debug.Log("[YooService] 无需下载，所有资源已就绪");
+            progress?.Report(1.0f);
+            return;
+        }
+
+        Debug.Log($"[YooService] 开始下载资源: {downloader.TotalDownloadCount} 个文件，总大小: {downloader.TotalDownloadBytes / 1024 / 1024} MB");
+
+        // 开始下载
+        downloader.BeginDownload();
+
+        // 监控进度
+        while (!downloader.IsDone)
+        {
+            progress?.Report(downloader.Progress);
+            await UniTask.Yield();
+        }
+
+        // 检查结果
+        if (downloader.Status == EOperationStatus.Succeed)
+        {
+            Debug.Log("[YooService] 资源下载完成");
+            progress?.Report(1.0f);
+        }
+        else
+        {
+            string error = downloader.Error ?? "未知错误";
+            Debug.LogError($"[YooService] 资源下载失败: {error}");
+            throw new Exception($"资源下载失败: {error}");
+        }
+    }
+
+    /// <summary>
+    /// 卸载未使用的资源（UniTask 方式，带进度回调）
+    /// </summary>
+    public async UniTask UnloadUnusedAssetsAsync(IProgress<float> progress = null)
+    {
+        if (!_isInitialized || currentPackage == null)
+        {
+            throw new InvalidOperationException("[YooService] 未初始化，无法卸载资源");
+        }
+
+        Debug.Log("[YooService] 开始卸载未使用的资源...");
+        var operation = currentPackage.UnloadUnusedAssetsAsync();
+
+        // 监控进度
+        while (!operation.IsDone)
+        {
+            progress?.Report(operation.Progress);
+            await UniTask.Yield();
+        }
+
+        Debug.Log("[YooService] 卸载未使用的资源完成");
+        progress?.Report(1.0f);
+    }
+
 
     /// <summary>
     /// 获取当前活跃的资源句柄数量
