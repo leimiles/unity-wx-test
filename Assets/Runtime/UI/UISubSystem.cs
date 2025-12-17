@@ -18,6 +18,6 @@ public sealed class UISubSystem : ISubSystem
     /// </summary>
     public static void ShowLoadingUI()
     {
-        LoadingUIService.Instance.Show();
+        LoadingUIService.Instance.ShowLoadingUI();
     }
 }
