@@ -1,77 +1,104 @@
-using System.Collections.Generic;
 using UnityEngine;
 using YooAsset;
 using System;
 using Cysharp.Threading.Tasks;
 using UnityEngine.Networking;
 
-[Obsolete("Use YooService instead")]
-public class YooUtilsByUniTask : ISubSystem
+
+public interface IYooService
 {
-    /// <summary>
-    /// 子系统名称
-    /// </summary>
-    public string Name => "YooUtils";
-    public int Priority => 1;
-    /// <summary>
-    /// 是否必须
-    /// </summary>
-    public bool IsRequired => true;
-    /// <summary>
-    /// 是否初始化完成
-    /// </summary>
-    public bool IsInitialized => isInitialized;
+    bool IsInitialized { get; }
+    UniTask InitializeAsync(IProgress<float> progress);
+}
+
+public sealed class YooService : IYooService
+{
+    private volatile bool _isInitialized;
+    public bool IsInitialized => _isInitialized;
+
     readonly YooUtilsSettings settings;
-    bool isInitialized = false;
     ResourcePackage currentPackage;
-    //public event Action OnInitialized;
-    //public event Action<string> OnInitializeFailed;
-    UniTask? _initTask;
-    Dictionary<string, AssetHandleInfo> activeHandles = new();
+    private readonly object _initGate = new object();
+    private UniTaskCompletionSource _initTcs;
 
-    class AssetHandleInfo
+    public YooService(YooUtilsSettings yooUtilsSettings)
     {
-        public AssetHandle Handle { get; set; }
-        public AssetHandleInfo(AssetHandle handle)
-        {
-            Handle = handle;
-        }
+        settings = yooUtilsSettings != null ? yooUtilsSettings : throw new ArgumentNullException(nameof(yooUtilsSettings));
     }
 
-    public YooUtilsByUniTask(YooUtilsSettings yooUtilsSettings)
-    {
-        settings = yooUtilsSettings;
-    }
+
+    // public UniTask InitializeAsync(IProgress<float> progress)
+    // {
+    //     if (IsInitialized)
+    //     {
+    //         progress?.Report(1.0f);
+    //         return UniTask.CompletedTask;
+    //     }
+
+    //     if (!_initTask.HasValue)
+    //     {
+    //         // 第一次调用：启动初始化（使用内部的 CTS，不受外部取消影响）
+    //         // 初始化过程一旦开始就不应该被取消
+    //         _initTask = InitializeInternalAsync(progress);
+    //     }
+    //     return _initTask.Value;
+    // }
 
     public UniTask InitializeAsync(IProgress<float> progress)
     {
-        if (isInitialized)
+        if (_isInitialized)
         {
             progress?.Report(1.0f);
             return UniTask.CompletedTask;
         }
 
-        if (!_initTask.HasValue)
+        UniTaskCompletionSource tcs;
+        bool needStart = false;
+
+        lock (_initGate)
         {
-            // 第一次调用：启动初始化（使用内部的 CTS，不受外部取消影响）
-            // 初始化过程一旦开始就不应该被取消
-            _initTask = InitializeInternalAsync(progress);
+            if (_initTcs == null)
+            {
+                _initTcs = new UniTaskCompletionSource();
+                needStart = true;
+            }
+            tcs = _initTcs;
         }
-        return _initTask.Value;
+
+        if (needStart)
+        {
+            RunInitialize(progress).Forget();
+        }
+
+        return tcs.Task;
     }
+
+    private async UniTaskVoid RunInitialize(IProgress<float> progress)
+    {
+        try
+        {
+            await InitializeInternalAsync(progress);
+            lock (_initGate)
+            {
+                _initTcs?.TrySetResult();
+                _initTcs = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            lock (_initGate)
+            {
+                _initTcs?.TrySetException(ex);
+                _initTcs = null; // 失败允许重试
+            }
+        }
+    }
+
 
     async UniTask InitializeInternalAsync(IProgress<float> progress)
     {
         try
         {
-            // verify settings
-            if (settings == null)
-            {
-                string error = "YooUtilsSettings is not set, please set it in the inspector";
-                Debug.LogError(error);
-                throw new InvalidOperationException(error);
-            }
-
             Debug.Log("=== Start YooAsset initialization ===");
             progress?.Report(0.0f);
 
@@ -214,7 +241,7 @@ public class YooUtilsByUniTask : ISubSystem
             Debug.Log("Default package set successfully");
             progress?.Report(0.9f);
 
-            isInitialized = true;
+            _isInitialized = true;
             progress?.Report(1.0f);
             Debug.Log("=== YooAsset initialization completed ===");
             //OnInitialized?.Invoke();
@@ -227,14 +254,15 @@ public class YooUtilsByUniTask : ISubSystem
         }
         finally
         {
-            if (!isInitialized)
+            if (!_isInitialized)
             {
-                // 初始化失败，允许重试
-                _initTask = null;
+                // 只清理资源，_initTcs 的重置由 RunInitialize 的 catch 处理
+                currentPackage = null;
             }
         }
 
     }
+
 
     async UniTask<bool> TestNetworkConnection(string cdnBaseUrl)
     {

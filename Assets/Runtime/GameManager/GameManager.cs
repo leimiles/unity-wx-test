@@ -7,7 +7,7 @@ using System;
 public class GameManager : PersistentSingleton<GameManager>
 {
     EventBinding<BootstrapStartEvent> _bootstrapStartBinding;
-    Dictionary<string, ISubSystem> _subSystems = new();
+    List<ISubSystem> _subSystems = new();
     float _bootStartTime;
 
     protected override void Awake()
@@ -38,7 +38,7 @@ public class GameManager : PersistentSingleton<GameManager>
         }
     }
 
-    async UniTaskVoid StartBootSequence(BootstrapConfigs bootstrapConfigs)
+    async UniTask StartBootSequence(BootstrapConfigs bootstrapConfigs)
     {
         _bootStartTime = Time.realtimeSinceStartup;
         Debug.Log($"Boot start at {_bootStartTime}");
@@ -48,12 +48,15 @@ public class GameManager : PersistentSingleton<GameManager>
             _subSystems.Clear();
             CreateSubSystems(bootstrapConfigs);
 
-            var progress = new Progress<float>(
-                (p) =>
-                {
-                    Debug.Log($"Boot progress: {p * 100:F1}%");
-                }
-            );
+            float last = -1f;
+            var progress = new Progress<float>(p =>
+            {
+                // 避免刷屏：只有变化到 1% 以上才打印
+                if (p < last + 0.01f && p < 1f) return;
+                last = p;
+
+                Debug.Log($"boot progress: {p * 100:F1}%");
+            });
 
             await InitializeSubSystems(progress);
 
@@ -84,24 +87,26 @@ public class GameManager : PersistentSingleton<GameManager>
         }
     }
 
+
     async UniTask InitializeSubSystems(IProgress<float> progress)
     {
-        int totalSubSystems = _subSystems.Count;
-        if (totalSubSystems <= 0)
+        int total = _subSystems.Count;
+        if (total <= 0)
         {
             Debug.LogWarning("No subSystems to initialize");
             progress?.Report(1.0f);
             return;
         }
 
-        int completedSystems = 0;
-        Debug.Log($"InitializeSubSystems start, total {totalSubSystems} subSystems");
+        int processed = 0; // 处理过的系统数（成功/失败都算）
+        int succeeded = 0; // 成功数（仅用于日志/统计）
 
-        // 先按照优先级排序
-        var sortedSubSystems = new List<ISubSystem>(_subSystems.Values);
-        sortedSubSystems.Sort((a, b) => a.Priority.CompareTo(b.Priority));
+        Debug.Log($"InitializeSubSystems start, total {total} subSystems");
 
-        foreach (var subSystem in sortedSubSystems)
+        // 只在初始化前排序一次（你原来就有）
+        _subSystems.Sort((a, b) => a.Priority.CompareTo(b.Priority));
+
+        foreach (var subSystem in _subSystems)
         {
             EventBus<SubSystemInitializationStartEvent>.Raise(
                 new SubSystemInitializationStartEvent
@@ -115,36 +120,20 @@ public class GameManager : PersistentSingleton<GameManager>
             string errorMessage = null;
             bool isSuccess = false;
 
+            var subSystemProgress = new BootProgressMapper(progress, subSystem.Name, processed, total).Create();
+
             try
             {
-                var subSystemProgress = new Progress<float>(p =>
-                {
-                    p = Mathf.Clamp01(p);
-
-                    float totalProgress = (completedSystems + p) / (float)totalSubSystems;
-                    totalProgress = Mathf.Clamp01(totalProgress);
-
-                    progress?.Report(totalProgress);
-
-                    EventBus<SubSystemInitializationProgressEvent>.Raise(new SubSystemInitializationProgressEvent
-                    {
-                        subSystemName = subSystem.Name,
-                        progress = p,
-                        totalProgress = totalProgress
-                    });
-                });
-
-
                 await subSystem.InitializeAsync(subSystemProgress);
 
                 isSuccess = subSystem.IsInitialized;
-
                 if (!isSuccess)
                 {
                     errorMessage = $"SubSystem {subSystem.Name} initialization failed";
                     if (subSystem.IsRequired)
                     {
-                        throw new Exception($"SubSystem {subSystem.Name} initialization failed, but it is required");
+                        // Required：中断启动流程
+                        throw new Exception(errorMessage);
                     }
                 }
                 else
@@ -156,14 +145,18 @@ public class GameManager : PersistentSingleton<GameManager>
             {
                 isSuccess = false;
                 errorMessage = e.Message;
+
                 if (subSystem.IsRequired)
                 {
-                    Debug.LogError($"SubSystem {subSystem.Name} initialization failed: {e.Message}, but it is required, will throw exception");
-                    throw;
+                    Debug.LogError(
+                        $"SubSystem {subSystem.Name} initialization failed: {e.Message}, but it is required, will throw exception");
+                    throw; // Required：继续往上抛，让 StartBootSequence 统一失败
                 }
                 else
                 {
-                    Debug.LogError($"SubSystem {subSystem.Name} initialization failed: {e.Message}, but it is not required, will log error and continue");
+                    Debug.LogError(
+                        $"SubSystem {subSystem.Name} initialization failed: {e.Message}, but it is not required, will continue");
+                    // Optional：吞掉异常继续
                 }
             }
             finally
@@ -177,19 +170,20 @@ public class GameManager : PersistentSingleton<GameManager>
                     }
                 );
 
+                // 关键：先推进“处理计数”，保证总进度不会卡在 < 1
+                processed++;
+
                 if (isSuccess)
-                {
-                    completedSystems++;
-                }
-                // 移除这里的重复进度报告，因为 subSystemProgress 回调已经报告过了
-                // 只在最后确保进度是 100%（如果所有系统都完成）
-                if (completedSystems == totalSubSystems)
-                {
-                    progress?.Report(1.0f);
-                }
+                    succeeded++;
+
+                // 可选：每个系统完成时，给一个边界进度（避免最后一个系统没有上报 1.0）
+                //progress?.Report(processed / (float)total);
             }
         }
-        Debug.Log($"InitializeSubSystems completed: {completedSystems} / {totalSubSystems} subSystems initialized");
+
+        // 保底收口：无论 Optional 成功与否，只要流程跑完，进度都到 1.0
+        progress?.Report(1.0f);
+        Debug.Log($"InitializeSubSystems completed: {succeeded} / {total} subSystems initialized");
     }
 
     void CreateSubSystems(BootstrapConfigs bootstrapConfigs)
@@ -197,8 +191,9 @@ public class GameManager : PersistentSingleton<GameManager>
         //1. 创建 YooUtilsSubSystem
         if (bootstrapConfigs.yooUtilsSettings != null)
         {
-            var yooUtils = new YooUtilsByUniTask(bootstrapConfigs.yooUtilsSettings);
-            RegisterSubSystem(yooUtils);
+            IYooService yooService = new YooService(bootstrapConfigs.yooUtilsSettings);
+            YooSubSystem yooSubSystem = new(yooService);
+            RegisterSubSystem(yooSubSystem);
         }
         else
         {
@@ -206,6 +201,11 @@ public class GameManager : PersistentSingleton<GameManager>
         }
 
         // 可以继续添加其他子系统
+        // var testSubSystem = new TestSubSystem();
+        // RegisterSubSystem(testSubSystem);
+
+        // var failingTestSubSystem = new FailingTestSubSystem();
+        // RegisterSubSystem(failingTestSubSystem);
 
         Debug.Log($"SubSystems created: {_subSystems.Count}");
     }
@@ -225,13 +225,16 @@ public class GameManager : PersistentSingleton<GameManager>
             return;
         }
 
-        if (!_subSystems.TryAdd(name, subSystem))
+        if (_subSystems.Exists(s => s.Name == name))
         {
-            Debug.LogError($"SubSystem {name} already registered, can't register again");
+            Debug.LogError($"SubSystem '{name}' already registered");
             return;
         }
 
-        Debug.Log($"SubSystem {name} registered successfully");
+        _subSystems.Add(subSystem);
+
+        Debug.Log($"SubSystem '{name}' registered (Priority={subSystem.Priority}, Required={subSystem.IsRequired})");
+
     }
 
 }
