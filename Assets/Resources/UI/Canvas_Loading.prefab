@@ -121,7 +121,7 @@ MonoBehaviour:
   m_MinValue: 0
   m_MaxValue: 1
   m_WholeNumbers: 0
-  m_Value: 1
+  m_Value: 0
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -273,6 +273,7 @@ GameObject:
   - component: {fileID: 3118408322268484910}
   - component: {fileID: 6142879684178634235}
   - component: {fileID: 151913426949943737}
+  - component: {fileID: 7874143061763167357}
   m_Layer: 5
   m_Name: Canvas_Loading
   m_TagString: Untagged
@@ -379,6 +380,21 @@ MonoBehaviour:
   _progressSlider: {fileID: 4728282436982930873}
   _progressText: {fileID: 7089661500593792008}
   _LoadingBackgroundImage: {fileID: 88269422783224392}
+  _canvasGroup: {fileID: 7874143061763167357}
+  _fadeInSeconds: 0.15
+  _fadeOutSeconds: 0.25
+--- !u!225 &7874143061763167357
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4515530103372126426}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &5996986191535136065
 GameObject:
   m_ObjectHideFlags: 0
