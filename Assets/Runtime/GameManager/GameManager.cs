@@ -39,6 +39,20 @@ public class GameManager : PersistentSingleton<GameManager>
             EventBus<BootstrapStartEvent>.Deregister(_bootstrapStartBinding);
             _bootstrapStartBinding = null;
         }
+
+        // 通知所有子系统释放所有资源
+        foreach (var subSystem in _subSystems)
+        {
+            try
+            {
+                subSystem.Dispose();
+                Debug.Log($"SubSystem {subSystem.Name} disposed");
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Failed to dispose SubSystem {subSystem.Name}: {e.Message}");
+            }
+        }
     }
 
     async UniTask StartBootSequence(BootstrapConfigs bootstrapConfigs)

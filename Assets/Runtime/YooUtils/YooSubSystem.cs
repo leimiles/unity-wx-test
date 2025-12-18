@@ -3,7 +3,7 @@ using System;
 
 public class YooSubSystem : ISubSystem
 {
-    public string Name => "YooUtils";
+    public string Name => "YooSubSystem";
     public int Priority => 1;
     public bool IsRequired => true;
     public bool IsInitialized => _yooService.IsInitialized;
@@ -17,6 +17,11 @@ public class YooSubSystem : ISubSystem
     public UniTask InitializeAsync(IProgress<float> progress)
     {
         return _yooService.InitializeAsync(progress);
+    }
+
+    public void Dispose()
+    {
+        _yooService.Dispose();
     }
 
 }

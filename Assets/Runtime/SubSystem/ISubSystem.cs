@@ -11,4 +11,5 @@ public interface ISubSystem
     // public float Progress { get; }
     public bool IsInitialized { get; }
     public UniTask InitializeAsync(IProgress<float> progress);
+    public void Dispose();
 }

@@ -20,4 +20,10 @@ public sealed class UISubSystem : ISubSystem
     {
         LoadingUIService.Instance.ShowLoadingUI();
     }
+
+    public void Dispose()
+    {
+        // 释放 UI 相关资源
+        LoadingUIService.Instance.Dispose();
+    }
 }

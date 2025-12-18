@@ -329,4 +329,26 @@ public class YooUtilsByUniTask : ISubSystem
         }
     }
 
+    /// <summary>
+    /// 释放所有资源句柄
+    /// </summary>
+    public void ReleaseAllAssets()
+    {
+        foreach (var kvp in activeHandles)
+        {
+            kvp.Value.Handle.Release();
+        }
+        activeHandles.Clear();
+        Debug.Log("[YooUtils] 已释放所有资源句柄");
+    }
+
+
+    public void Dispose()
+    {
+        ReleaseAllAssets();
+        currentPackage = null;
+        isInitialized = false;
+        Debug.Log("[YooUtilsByUniTask] 已释放所有资源并重置服务");
+    }
+
 }

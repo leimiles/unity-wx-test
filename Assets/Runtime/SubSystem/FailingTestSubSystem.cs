@@ -14,4 +14,10 @@ public class FailingTestSubSystem : ISubSystem
         progress?.Report(0.5f);
         throw new Exception("测试失败：Optional 系统失败不应该中断启动流程");
     }
+
+    public void Dispose()
+    {
+        Debug.Log($"[FailingTestSubSystem] 资源已释放");
+        // 在这里添加释放资源的逻辑
+    }
 }

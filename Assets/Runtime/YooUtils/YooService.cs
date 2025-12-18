@@ -41,6 +41,8 @@ public interface IYooService
     bool CheckNeedDownload(out int totalCount, out long totalBytes);
     UniTask DownloadResourcesAsync(IProgress<float> progress = null);
     UniTask UnloadUnusedAssetsAsync(IProgress<float> progress = null);
+
+    void Dispose();
 }
 
 public sealed class YooService : IYooService
@@ -760,6 +762,15 @@ public sealed class YooService : IYooService
 
         Debug.Log("[YooService] 卸载未使用的资源完成");
         progress?.Report(1.0f);
+    }
+
+
+    public void Dispose()
+    {
+        ReleaseAllAssets();
+        currentPackage = null;
+        _isInitialized = false;
+        Debug.Log("[YooService] 已释放所有资源并重置服务");
     }
 
 

@@ -39,4 +39,9 @@ public sealed class LoadingUIService
         Object.Destroy(_instanceGO);
         _instanceGO = null;
     }
+
+    public void Dispose()
+    {
+        Destroy();
+    }
 }

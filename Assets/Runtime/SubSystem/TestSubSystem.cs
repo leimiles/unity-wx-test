@@ -27,4 +27,9 @@ public class TestSubSystem : ISubSystem
         IsInitialized = true;
         Debug.Log($"[TestSubSystem] 初始化完成！");
     }
+    public void Dispose()
+    {
+        Debug.Log($"[TestSubSystem] 资源已释放");
+        // 在这里添加释放资源的逻辑
+    }
 }
