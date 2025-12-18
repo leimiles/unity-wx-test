@@ -202,12 +202,55 @@ public class ModularBoneSystem
             return;
         }
 
-        // 找到与 baseBonesRoot 同名的 transform
-        Transform oldRootBone = targetTransform.Find(modularChar.BaseBonesRoot.name);
+        // 限制最大深度为 3 层，避免全局递归查找
+        string targetName = modularChar.BaseBonesRoot.name;
+        Transform oldRootBone = FindChildByNameWithMaxDepth(targetTransform, targetName, 3);
+
         if (oldRootBone != null)
         {
             Object.Destroy(oldRootBone.gameObject);
         }
+    }
+
+    /// <summary>
+    /// 在指定深度内查找子节点
+    /// </summary>
+    /// <param name="parent">父节点</param>
+    /// <param name="targetName">目标名称</param>
+    /// <param name="maxDepth">最大深度（1 表示只查找直接子节点）</param>
+    /// <returns>找到的 Transform，未找到返回 null</returns>
+    private Transform FindChildByNameWithMaxDepth(Transform parent, string targetName, int maxDepth)
+    {
+        if (parent == null || maxDepth <= 0)
+        {
+            return null;
+        }
+
+        // 查找当前层级
+        for (int i = 0; i < parent.childCount; i++)
+        {
+            Transform child = parent.GetChild(i);
+            if (child.name == targetName)
+            {
+                return child;
+            }
+        }
+
+        // 递归查找下一层级
+        if (maxDepth > 1)
+        {
+            for (int i = 0; i < parent.childCount; i++)
+            {
+                Transform child = parent.GetChild(i);
+                Transform result = FindChildByNameWithMaxDepth(child, targetName, maxDepth - 1);
+                if (result != null)
+                {
+                    return result;
+                }
+            }
+        }
+
+        return null;
     }
 }
 
