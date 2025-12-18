@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 6756690513312109258}
   - component: {fileID: 4861565893931215372}
-  - component: {fileID: 5107229959120953986}
   m_Layer: 0
   m_Name: Dino_One
   m_TagString: Untagged
@@ -49,25 +48,6 @@ MonoBehaviour:
   baseBonesRoot: {fileID: 1231960207022438434}
   rigidAttachment: {fileID: 7939019955916451407}
   boneRenderer: {fileID: 583012604852089777}
---- !u!114 &5107229959120953986
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5531578081481579915}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47b59cc96254d49259720656d2dcaa57, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  modularCharMonoRef: {fileID: 0}
-  rigidPrefabTest1: {fileID: 0}
-  rigidPrefabTest2: {fileID: 0}
-  skinnedOutfitPrefabTest1: {fileID: 919132149155446097, guid: 231ad995e8a97894b9d178f509811ecb,
-    type: 3}
-  skinnedOutfitPrefabTest2: {fileID: 0}
-  skinnedOutfitPrefabTest3: {fileID: 0}
 --- !u!1001 &1626490210210570185
 PrefabInstance:
   m_ObjectHideFlags: 0
