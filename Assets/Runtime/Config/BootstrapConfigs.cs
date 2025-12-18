@@ -8,7 +8,7 @@ public class BootstrapConfigs : IConfigs
     public YooUtilsSettings yooUtilsSettings;
 
     [Tooltip("游戏场景系统配置")]
-    public GameSceneManagerSettings gameSceneManagerSettings;
+    public GameSceneSettings gameSceneSettings;
 
     //[Tooltip("输入系统配置（如果需要）")]
     // public InputSettings inputSettings;
@@ -21,9 +21,9 @@ public class BootstrapConfigs : IConfigs
         {
             throw new System.Exception("YooUtilsSettings is not set");
         }
-        if (gameSceneManagerSettings == null)
+        if (gameSceneSettings == null)
         {
-            throw new System.Exception("GameSceneManagerSettings is not set");
+            throw new System.Exception("GameSceneSettings is not set");
         }
     }
 }
