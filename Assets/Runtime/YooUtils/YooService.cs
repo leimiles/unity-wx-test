@@ -51,7 +51,7 @@ public sealed class YooService : IYooService
 
     public bool IsInitialized => _isInitialized;
 
-    readonly YooUtilsSettings settings;
+    readonly YooSettings settings;
 
     ResourcePackage currentPackage;
 
@@ -96,9 +96,9 @@ public sealed class YooService : IYooService
             HashCode.Combine(Address, Type);
     }
 
-    public YooService(YooUtilsSettings yooUtilsSettings)
+    public YooService(YooSettings yooSettings)
     {
-        settings = yooUtilsSettings != null ? yooUtilsSettings : throw new ArgumentNullException(nameof(yooUtilsSettings));
+        settings = yooSettings != null ? yooSettings : throw new ArgumentNullException(nameof(yooSettings));
     }
 
     public UniTask InitializeAsync(IProgress<float> progress)

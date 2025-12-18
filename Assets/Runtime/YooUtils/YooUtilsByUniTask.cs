@@ -21,7 +21,7 @@ public class YooUtilsByUniTask : ISubSystem
     /// 是否初始化完成
     /// </summary>
     public bool IsInitialized => isInitialized;
-    readonly YooUtilsSettings settings;
+    readonly YooSettings settings;
     bool isInitialized = false;
     ResourcePackage currentPackage;
     //public event Action OnInitialized;
@@ -38,9 +38,9 @@ public class YooUtilsByUniTask : ISubSystem
         }
     }
 
-    public YooUtilsByUniTask(YooUtilsSettings yooUtilsSettings)
+    public YooUtilsByUniTask(YooSettings yooSettings)
     {
-        settings = yooUtilsSettings;
+        settings = yooSettings;
     }
 
     public UniTask InitializeAsync(IProgress<float> progress)
@@ -67,7 +67,7 @@ public class YooUtilsByUniTask : ISubSystem
             // verify settings
             if (settings == null)
             {
-                string error = "YooUtilsSettings is not set, please set it in the inspector";
+                string error = "YooSettings is not set, please set it in the inspector";
                 Debug.LogError(error);
                 throw new InvalidOperationException(error);
             }

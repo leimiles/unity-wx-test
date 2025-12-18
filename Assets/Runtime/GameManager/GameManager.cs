@@ -212,10 +212,10 @@ public class GameManager : PersistentSingleton<GameManager>
 
     void CreateSubSystems(BootstrapConfigs bootstrapConfigs)
     {
-        //1. 创建 YooUtilsSubSystem
-        if (bootstrapConfigs.yooUtilsSettings != null)
+        //1. 创建 YooSubSystem
+        if (bootstrapConfigs.yooSettings != null)
         {
-            var yooService = new YooService(bootstrapConfigs.yooUtilsSettings);
+            var yooService = new YooService(bootstrapConfigs.yooSettings);
             Services.Register<IYooService>(yooService);
 
             var yooSubSystem = new YooSubSystem(Services.Get<IYooService>());
@@ -223,7 +223,7 @@ public class GameManager : PersistentSingleton<GameManager>
         }
         else
         {
-            Debug.LogError("YooUtilsSettings is null, can't create YooUtilsSubSystem");
+            Debug.LogError("YooSettings is null, can't create YooSubSystem");
         }
 
         // 可以继续添加其他子系统

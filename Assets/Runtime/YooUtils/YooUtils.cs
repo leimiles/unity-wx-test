@@ -13,7 +13,7 @@ using MilesUtils;
 [DisallowMultipleComponent]
 public class YooUtils : PersistentSingleton<YooUtils>
 {
-    [SerializeField] private YooUtilsSettings settings;
+    [SerializeField] private YooSettings settings;
     [SerializeField] private EPlayMode playMode;
 
     // 初始化状态
@@ -77,7 +77,7 @@ public class YooUtils : PersistentSingleton<YooUtils>
         // 验证配置
         if (settings == null)
         {
-            string error = "YooUtilsSettings 配置为空！请在 Inspector 中分配设置资源";
+            string error = "YooSettings 配置为空！请在 Inspector 中分配设置资源";
             Debug.LogError(error);
             OnInitializeFailed?.Invoke(error);
             isInitializing = false;

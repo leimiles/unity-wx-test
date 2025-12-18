@@ -5,7 +5,7 @@ public class BootstrapConfigs : IConfigs
 {
     [Header("子系统配置")]
     [Tooltip("YooUtils 资源系统配置")]
-    public YooUtilsSettings yooUtilsSettings;
+    public YooSettings yooSettings;
 
     [Tooltip("游戏场景系统配置")]
     public GameSceneSettings gameSceneSettings;
@@ -17,9 +17,9 @@ public class BootstrapConfigs : IConfigs
 
     public void Validate()
     {
-        if (yooUtilsSettings == null)
+        if (yooSettings == null)
         {
-            throw new System.Exception("YooUtilsSettings is not set");
+            throw new System.Exception("YooSettings is not set");
         }
         if (gameSceneSettings == null)
         {

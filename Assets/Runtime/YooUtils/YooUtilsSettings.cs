@@ -1,8 +1,8 @@
 using UnityEngine;
 using YooAsset;
 
-[CreateAssetMenu(fileName = "YooUtilsSettings", menuName = "WX/Configs/YooUtilsSettings", order = 1)]
-public class YooUtilsSettings : IConfigs
+[CreateAssetMenu(fileName = "YooSettings", menuName = "WX/Configs/YooSettings", order = 1)]
+public class YooSettings : IConfigs
 {
     [Header("服务器配置")]
     [Tooltip("主服务器地址")]
