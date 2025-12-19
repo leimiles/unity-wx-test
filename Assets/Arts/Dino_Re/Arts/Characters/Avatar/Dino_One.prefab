@@ -47,7 +47,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   baseBonesRoot: {fileID: 1231960207022438434}
   rigidAttachment: {fileID: 7939019955916451407}
-  boneRenderer: {fileID: 583012604852089777}
+  boneRenderer: {fileID: 1132196116627924319}
 --- !u!1001 &1626490210210570185
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -111,14 +111,20 @@ PrefabInstance:
       propertyPath: m_Name
       value: Armature.001
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    - target: {fileID: 5866666021909216657, guid: 2e915b858a23c4e62b04f46af3bebf84,
+        type: 3}
+      propertyPath: m_Avatar
+      value: 
+      objectReference: {fileID: 0}
+    m_RemovedComponents:
+    - {fileID: 5866666021909216657, guid: 2e915b858a23c4e62b04f46af3bebf84, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 2e915b858a23c4e62b04f46af3bebf84,
+    - targetCorrespondingSourceObject: {fileID: 1082271958561512970, guid: 2e915b858a23c4e62b04f46af3bebf84,
         type: 3}
       insertIndex: -1
-      addedObject: {fileID: 583012604852089777}
+      addedObject: {fileID: 1132196116627924319}
   m_SourcePrefab: {fileID: 100100000, guid: 2e915b858a23c4e62b04f46af3bebf84, type: 3}
 --- !u!4 &352898159273055269 stripped
 Transform:
@@ -156,19 +162,19 @@ Transform:
     type: 3}
   m_PrefabInstance: {fileID: 1626490210210570185}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &1896892765058196120 stripped
+--- !u!1 &1844070829586678211 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 2e915b858a23c4e62b04f46af3bebf84,
+  m_CorrespondingSourceObject: {fileID: 1082271958561512970, guid: 2e915b858a23c4e62b04f46af3bebf84,
     type: 3}
   m_PrefabInstance: {fileID: 1626490210210570185}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &583012604852089777
+--- !u!114 &1132196116627924319
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1896892765058196120}
+  m_GameObject: {fileID: 1844070829586678211}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b2d8418b0b9634b1892b0268dd9c2743, type: 3}
@@ -181,7 +187,6 @@ MonoBehaviour:
   tripodSize: 1
   boneColor: {r: 0, g: 0, b: 1, a: 0.5}
   m_Transforms:
-  - {fileID: 1231960207022438434}
   - {fileID: 6721797864528500918}
   - {fileID: 3825276626514764234}
   - {fileID: 8479388316440000788}

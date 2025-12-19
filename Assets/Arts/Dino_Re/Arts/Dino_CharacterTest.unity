@@ -131,10 +131,30 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 5186142994297840216, guid: 198978eda887845c4a5d76976c4e6ebc,
+        type: 3}
+      propertyPath: m_Avatar
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 5186142994297840216, guid: 198978eda887845c4a5d76976c4e6ebc,
+        type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 5186142994297840216, guid: 198978eda887845c4a5d76976c4e6ebc,
+        type: 3}
+      propertyPath: m_WarningMessage
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 5531578081481579915, guid: 198978eda887845c4a5d76976c4e6ebc,
         type: 3}
       propertyPath: m_Name
       value: Dino_One
+      objectReference: {fileID: 0}
+    - target: {fileID: 5531578081481579915, guid: 198978eda887845c4a5d76976c4e6ebc,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6756690513312109258, guid: 198978eda887845c4a5d76976c4e6ebc,
         type: 3}
