@@ -11,7 +11,6 @@ public class ModularCharTest : MonoBehaviour
 
     #region Test
     [SerializeField] GameObject rigidPrefabTest1;
-    [SerializeField] GameObject rigidPrefabTest2;
     [SerializeField] GameObject skinnedOutfitPrefabTest1;
     [SerializeField] GameObject skinnedOutfitPrefabTest2;
     [SerializeField] GameObject skinnedOutfitPrefabTest3;
@@ -33,10 +32,9 @@ public class ModularCharTest : MonoBehaviour
 
 
         modularEquipmentSystem.ChangeRigidPart(modularCharMonoRef, ModularPartType.Rigid, rigidPrefabTest1);
-
-        modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.Hair, skinnedOutfitPrefabTest1);
-        modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.UpperBody, skinnedOutfitPrefabTest2);
-        modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.Outfit, skinnedOutfitPrefabTest3);
+        modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.Outfit, skinnedOutfitPrefabTest1);
+        modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.Gloves, skinnedOutfitPrefabTest2);
+        modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.Shoes, skinnedOutfitPrefabTest3);
 
 #if UNITY_EDITOR
         var boneRenderer = modularCharMonoRef.GetBoneRenderer();
