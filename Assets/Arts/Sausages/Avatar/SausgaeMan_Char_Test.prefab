@@ -330,8 +330,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1611176391256379500}
   - component: {fileID: 2572371135310819520}
+  - component: {fileID: 4036344257233357337}
   m_Layer: 0
-  m_Name: SausgaeMan_Char
+  m_Name: SausgaeMan_Char_Test
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -368,6 +369,27 @@ MonoBehaviour:
   baseBonesRoot: {fileID: 2443913628839145734}
   rigidAttachment: {fileID: 4503892777225287221}
   boneRenderer: {fileID: 97041144713917931}
+--- !u!114 &4036344257233357337
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3689830100225105216}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 47b59cc96254d49259720656d2dcaa57, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  modularCharMonoRef: {fileID: 0}
+  rigidPrefabTest1: {fileID: 0}
+  rigidPrefabTest2: {fileID: 0}
+  skinnedOutfitPrefabTest1: {fileID: 604403330098781084, guid: 49b82c00f901f47f88836aa6f2c93269,
+    type: 3}
+  skinnedOutfitPrefabTest2: {fileID: 2734863505377354399, guid: 82b577c5b1e814c7cb7202276b3268d0,
+    type: 3}
+  skinnedOutfitPrefabTest3: {fileID: 3881814251719807564, guid: 1e2646053044e4aafa4a43c11e229f77,
+    type: 3}
 --- !u!1 &3690866741015142024
 GameObject:
   m_ObjectHideFlags: 0
@@ -752,8 +774,8 @@ Animator:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5828334520384605021}
   m_Enabled: 1
-  m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 0}
+  m_Avatar: {fileID: 9000000, guid: a122e7dd6a5014c098f9db446ec957e8, type: 3}
+  m_Controller: {fileID: 9100000, guid: d2279fc0f4f414aa9aa0bf7937171a8f, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 1
