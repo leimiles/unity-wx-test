@@ -170,8 +170,9 @@ Shader "Dino/Mini/MiniLit_Furniture"
                 half3 spec_color = lerp(0.04, base_color , metal); 
 
                 //  Direct diffuse  直接光漫反射
-                half NdotL = saturate(dot(bump, lightDir));
-                half diff_term = max(0.0, NdotL);
+                half NdotL = dot(bump, lightDir); 
+                half clampedNdotL = saturate(NdotL);
+            	half diff_term = clampedNdotL;
                 half half_lambert = (diff_term + 1.0) * 0.5;
                 half oneMinusReflectivity = OneMinusReflectivityMetallic_Custom(kDielectricSpec, metal);
 				half3 brdfDiffuse = diff_term * lightColor * base_color * lightAtten * oneMinusReflectivity;
@@ -183,7 +184,7 @@ Shader "Dino/Mini/MiniLit_Furniture"
                 half smoothness = 1.0 - roughness;
                 half shininess = lerp(1, _SpecShininess, smoothness * smoothness);
                 half spec_term = pow(max(0.0, NdotH), shininess) * _SpecIntensity;
-                half3 direct_specular = spec_term * base_color * lightColor * lightAtten;
+                half3 direct_specular = spec_term * base_color * lightColor * lightAtten * clampedNdotL;
                 
                 //  Indirect diffuse  间接光漫反射
 				half3 bakedGI = SAMPLE_GI(float2(0,0), i.vertexSH, bump);
