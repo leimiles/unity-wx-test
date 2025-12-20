@@ -11,9 +11,7 @@ public class ModularCharTest : MonoBehaviour
 
     #region Test
     [SerializeField] GameObject rigidPrefabTest1;
-    [SerializeField] GameObject skinnedOutfitPrefabTest1;
-    [SerializeField] GameObject skinnedOutfitPrefabTest2;
-    [SerializeField] GameObject skinnedOutfitPrefabTest3;
+    [SerializeField] GameObject[] skinnedOutfitPrefabTests;
     #endregion
 
     /// <summary>
@@ -32,9 +30,65 @@ public class ModularCharTest : MonoBehaviour
 
 
         modularEquipmentSystem.ChangeRigidPart(modularCharMonoRef, ModularPartType.Rigid, rigidPrefabTest1);
-        modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.Outfit, skinnedOutfitPrefabTest1);
-        modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.Gloves, skinnedOutfitPrefabTest2);
-        modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.Shoes, skinnedOutfitPrefabTest3);
+        // modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.Outfit, skinnedOutfitPrefabTest1);
+        // modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.Gloves, skinnedOutfitPrefabTest2);
+        // modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.Shoes, skinnedOutfitPrefabTest3);
+        if (skinnedOutfitPrefabTests != null && skinnedOutfitPrefabTests.Length > 0)
+        {
+            if (skinnedOutfitPrefabTests.Length == 1)
+            {
+                modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.Outfit, skinnedOutfitPrefabTests[0]);
+            }
+            else if (skinnedOutfitPrefabTests.Length == 2)
+            {
+                modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.UpperBody, skinnedOutfitPrefabTests[0]);
+                modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.LowerBody, skinnedOutfitPrefabTests[1]);
+            }
+            else if (skinnedOutfitPrefabTests.Length == 3)
+            {
+                modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.Outfit, skinnedOutfitPrefabTests[0]);
+                modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.Gloves, skinnedOutfitPrefabTests[1]);
+                modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.Shoes, skinnedOutfitPrefabTests[2]);
+            }
+            else if (skinnedOutfitPrefabTests.Length == 4)
+            {
+                modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.UpperBody, skinnedOutfitPrefabTests[0]);
+                modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.LowerBody, skinnedOutfitPrefabTests[1]);
+                modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.Gloves, skinnedOutfitPrefabTests[2]);
+                modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.Shoes, skinnedOutfitPrefabTests[3]);
+            }
+            else if (skinnedOutfitPrefabTests.Length == 5)
+            {
+                modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.Outfit, skinnedOutfitPrefabTests[0]);
+                modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.UpperBody, skinnedOutfitPrefabTests[1]);
+                modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.LowerBody, skinnedOutfitPrefabTests[2]);
+                modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.Gloves, skinnedOutfitPrefabTests[3]);
+                modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.Shoes, skinnedOutfitPrefabTests[4]);
+            }
+            else if (skinnedOutfitPrefabTests.Length == 6)
+            {
+                modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.Outfit, skinnedOutfitPrefabTests[0]);
+                modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.UpperBody, skinnedOutfitPrefabTests[1]);
+                modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.LowerBody, skinnedOutfitPrefabTests[2]);
+                modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.Gloves, skinnedOutfitPrefabTests[3]);
+                modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.Shoes, skinnedOutfitPrefabTests[4]);
+                modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.Backpack, skinnedOutfitPrefabTests[5]);
+            }
+            else if (skinnedOutfitPrefabTests.Length == 7)
+            {
+                modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.Outfit, skinnedOutfitPrefabTests[0]);
+                modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.UpperBody, skinnedOutfitPrefabTests[1]);
+                modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.LowerBody, skinnedOutfitPrefabTests[2]);
+                modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.Gloves, skinnedOutfitPrefabTests[3]);
+                modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.Shoes, skinnedOutfitPrefabTests[4]);
+                modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.Backpack, skinnedOutfitPrefabTests[5]);
+                modularEquipmentSystem.ChangeSkinnedPart(modularCharMonoRef, ModularPartType.Accessory, skinnedOutfitPrefabTests[6]);
+            }
+            else
+            {
+                Debug.LogError("Skinned outfit prefab tests length is not supported");
+            }
+        }
 
 #if UNITY_EDITOR
         var boneRenderer = modularCharMonoRef.GetBoneRenderer();
