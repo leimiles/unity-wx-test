@@ -207,6 +207,7 @@ GameObject:
   - component: {fileID: 5472692656633787737}
   - component: {fileID: 1514315018112186770}
   - component: {fileID: 68723703492078562}
+  - component: {fileID: 6981206540376665927}
   m_Layer: 0
   m_Name: Dino_One
   m_TagString: Untagged
@@ -243,7 +244,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   baseBonesRoot: {fileID: 333916056054866415}
-  rigidAttachment: {fileID: 6000586102729853675}
+  rigidAttachment: {fileID: 5536203596737225357}
   boneRenderer: {fileID: 2156159168202969432}
 --- !u!95 &68723703492078562
 Animator:
@@ -266,6 +267,28 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &6981206540376665927
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1200436668312447327}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 47b59cc96254d49259720656d2dcaa57, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  modularCharMonoRef: {fileID: 1514315018112186770}
+  rigidPrefabTest1: {fileID: 4289999815041543753, guid: f5a16517dcd214b319ea6bf64982671d,
+    type: 3}
+  skinnedOutfitPrefabTests:
+  - {fileID: 4028753258463789885, guid: b6eaee681105f4921aa45e88689f21fc, type: 3}
+  - {fileID: 2405732437340752623, guid: 2be69810ef5174041a44c759285172a2, type: 3}
+  - {fileID: 8415300553435890991, guid: 93b66499ed83d44638c4157035038cd3, type: 3}
+  - {fileID: 5852461841910513220, guid: a845e783dc4554596b4e7fa2bad10dd4, type: 3}
+  - {fileID: 3500598011425566637, guid: c13aeb83c1e614a13bcc4498813ab034, type: 3}
+  - {fileID: 6203457124642989476, guid: e73e0c48885e941dea6daa5c0655e4dd, type: 3}
 --- !u!1 &1488735832646444916
 GameObject:
   m_ObjectHideFlags: 0
