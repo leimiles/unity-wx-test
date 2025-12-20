@@ -55,7 +55,7 @@ public class ModularEquipmentSystem
         RemovePart(modularChar, partType);
 
         // 实例化新部位
-        GameObject newPart = GameObject.Instantiate(rigidPrefab, targetAttachment);
+        GameObject newPart = GameObject.Instantiate(rigidPrefab, targetAttachment, true);
         modularChar.InternalSetPart(partType, newPart);
 
         return true;
