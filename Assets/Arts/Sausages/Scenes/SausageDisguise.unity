@@ -38,7 +38,6 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.12729266, g: 0.13414232, b: 0.12114291, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -210,6 +209,29 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 4741197508608190501, guid: 07602502ed22a4110a2f2b0441c238bd,
         type: 3}
+    - target: {fileID: 4036344257233357337, guid: a34289a39d6a54da7827ff3340526f88,
+        type: 3}
+      propertyPath: skinnedOutfitPrefabTests.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4036344257233357337, guid: a34289a39d6a54da7827ff3340526f88,
+        type: 3}
+      propertyPath: skinnedOutfitPrefabTests.Array.data[0]
+      value: 
+      objectReference: {fileID: 5248964797054587854, guid: 4d031de1666004118a629ff013b560c2,
+        type: 3}
+    - target: {fileID: 4036344257233357337, guid: a34289a39d6a54da7827ff3340526f88,
+        type: 3}
+      propertyPath: skinnedOutfitPrefabTests.Array.data[1]
+      value: 
+      objectReference: {fileID: 4912323231390226235, guid: 52936198099464057b0ec13e493f3db6,
+        type: 3}
+    - target: {fileID: 4036344257233357337, guid: a34289a39d6a54da7827ff3340526f88,
+        type: 3}
+      propertyPath: skinnedOutfitPrefabTests.Array.data[2]
+      value: 
+      objectReference: {fileID: 4741197508608190501, guid: 07602502ed22a4110a2f2b0441c238bd,
+        type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -301,6 +323,29 @@ PrefabInstance:
       propertyPath: skinnedOutfitPrefabTest3
       value: 
       objectReference: {fileID: 3784572347752551581, guid: 0894df5c99ed74935b13b5b727b0bc45,
+        type: 3}
+    - target: {fileID: 4036344257233357337, guid: a34289a39d6a54da7827ff3340526f88,
+        type: 3}
+      propertyPath: skinnedOutfitPrefabTests.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4036344257233357337, guid: a34289a39d6a54da7827ff3340526f88,
+        type: 3}
+      propertyPath: skinnedOutfitPrefabTests.Array.data[0]
+      value: 
+      objectReference: {fileID: 7982376295797963879, guid: 47e25ce16bb974e198d17eb993e5bb45,
+        type: 3}
+    - target: {fileID: 4036344257233357337, guid: a34289a39d6a54da7827ff3340526f88,
+        type: 3}
+      propertyPath: skinnedOutfitPrefabTests.Array.data[1]
+      value: 
+      objectReference: {fileID: 3784572347752551581, guid: 0894df5c99ed74935b13b5b727b0bc45,
+        type: 3}
+    - target: {fileID: 4036344257233357337, guid: a34289a39d6a54da7827ff3340526f88,
+        type: 3}
+      propertyPath: skinnedOutfitPrefabTests.Array.data[2]
+      value: 
+      objectReference: {fileID: 7229096894783488827, guid: 7b6bbba1a4b204ec6b2314d0432e002c,
         type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -438,97 +483,28 @@ PrefabInstance:
       propertyPath: m_Name
       value: SausgaeMan_Char_Test
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: a34289a39d6a54da7827ff3340526f88, type: 3}
---- !u!1001 &1752605919
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 1611176391256379500, guid: a34289a39d6a54da7827ff3340526f88,
+    - target: {fileID: 4036344257233357337, guid: a34289a39d6a54da7827ff3340526f88,
         type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 6
-      objectReference: {fileID: 0}
-    - target: {fileID: 1611176391256379500, guid: a34289a39d6a54da7827ff3340526f88,
-        type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1611176391256379500, guid: a34289a39d6a54da7827ff3340526f88,
-        type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1611176391256379500, guid: a34289a39d6a54da7827ff3340526f88,
-        type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1611176391256379500, guid: a34289a39d6a54da7827ff3340526f88,
-        type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1611176391256379500, guid: a34289a39d6a54da7827ff3340526f88,
-        type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1611176391256379500, guid: a34289a39d6a54da7827ff3340526f88,
-        type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1611176391256379500, guid: a34289a39d6a54da7827ff3340526f88,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1611176391256379500, guid: a34289a39d6a54da7827ff3340526f88,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1611176391256379500, guid: a34289a39d6a54da7827ff3340526f88,
-        type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3689830100225105216, guid: a34289a39d6a54da7827ff3340526f88,
-        type: 3}
-      propertyPath: m_Name
-      value: SausgaeMan_Char_Test (3)
+      propertyPath: skinnedOutfitPrefabTests.Array.size
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 4036344257233357337, guid: a34289a39d6a54da7827ff3340526f88,
         type: 3}
-      propertyPath: rigidPrefabTest1
+      propertyPath: skinnedOutfitPrefabTests.Array.data[0]
       value: 
-      objectReference: {fileID: 1847061035146683850, guid: 9c19a559b6f8b425db021f9c830f7efb,
+      objectReference: {fileID: 3881814251719807564, guid: 1e2646053044e4aafa4a43c11e229f77,
         type: 3}
     - target: {fileID: 4036344257233357337, guid: a34289a39d6a54da7827ff3340526f88,
         type: 3}
-      propertyPath: skinnedOutfitPrefabTest1
+      propertyPath: skinnedOutfitPrefabTests.Array.data[1]
       value: 
-      objectReference: {fileID: 5248964797054587854, guid: 4d031de1666004118a629ff013b560c2,
+      objectReference: {fileID: 2734863505377354399, guid: 82b577c5b1e814c7cb7202276b3268d0,
         type: 3}
     - target: {fileID: 4036344257233357337, guid: a34289a39d6a54da7827ff3340526f88,
         type: 3}
-      propertyPath: skinnedOutfitPrefabTest2
+      propertyPath: skinnedOutfitPrefabTests.Array.data[2]
       value: 
-      objectReference: {fileID: 4912323231390226235, guid: 52936198099464057b0ec13e493f3db6,
-        type: 3}
-    - target: {fileID: 4036344257233357337, guid: a34289a39d6a54da7827ff3340526f88,
-        type: 3}
-      propertyPath: skinnedOutfitPrefabTest3
-      value: 
-      objectReference: {fileID: 4741197508608190501, guid: 07602502ed22a4110a2f2b0441c238bd,
+      objectReference: {fileID: 604403330098781084, guid: 49b82c00f901f47f88836aa6f2c93269,
         type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -542,5 +518,4 @@ SceneRoots:
   - {fileID: 1357243336}
   - {fileID: 259132900}
   - {fileID: 226262213}
-  - {fileID: 1752605919}
   - {fileID: 761343576}
