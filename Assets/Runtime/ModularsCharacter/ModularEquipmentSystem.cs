@@ -29,7 +29,7 @@ public class ModularEquipmentSystem
     /// <param name="rigidPrefab">刚体预制体</param>
     /// <param name="attachmentPoint">挂载点（如果为 null，使用默认的 RigidAttachment）</param>
     /// <returns>是否成功更换</returns>
-    public bool ChangeRigidPart(IModularChar modularChar, ModularPartType partType, GameObject rigidPrefab, Transform attachmentPoint = null)
+    public bool ChangeRigidPart(IModularChar modularChar, ModularPartType partType, GameObject rigidPrefab, bool worldPositionStays, Transform attachmentPoint = null)
     {
         if (modularChar == null)
         {
@@ -55,7 +55,7 @@ public class ModularEquipmentSystem
         RemovePart(modularChar, partType);
 
         // 实例化新部位
-        GameObject newPart = GameObject.Instantiate(rigidPrefab, targetAttachment, true);
+        GameObject newPart = GameObject.Instantiate(rigidPrefab, targetAttachment, worldPositionStays);
         modularChar.InternalSetPart(partType, newPart);
 
         return true;
@@ -187,7 +187,7 @@ public class ModularEquipmentSystem
     /// <param name="parts">部位配置字典（部位类型 -> 预制体）</param>
     /// <param name="isSkinned">是否为蒙皮部位（true=蒙皮，false=刚体）</param>
     /// <returns>成功更换的数量</returns>
-    public int ChangePartsBatch(IModularChar modularChar, System.Collections.Generic.Dictionary<ModularPartType, GameObject> parts, bool isSkinned = true)
+    public int ChangePartsBatch(IModularChar modularChar, System.Collections.Generic.Dictionary<ModularPartType, GameObject> parts, bool worldPositionStays, bool isSkinned = true)
     {
         if (modularChar == null || parts == null || parts.Count == 0)
         {
@@ -200,7 +200,7 @@ public class ModularEquipmentSystem
         {
             bool success = isSkinned
                 ? ChangeSkinnedPart(modularChar, kvp.Key, kvp.Value, resetBoneMap: false) // 批量更换时，只在最后一个重置
-                : ChangeRigidPart(modularChar, kvp.Key, kvp.Value);
+                : ChangeRigidPart(modularChar, kvp.Key, kvp.Value, worldPositionStays);
 
             if (success)
             {

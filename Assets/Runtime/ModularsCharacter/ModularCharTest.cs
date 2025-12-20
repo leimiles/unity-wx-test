@@ -10,6 +10,7 @@ public class ModularCharTest : MonoBehaviour
     ModularEquipmentSystem modularEquipmentSystem;
 
     #region Test
+    [SerializeField] bool rigidPartStaysWorldPosition = false;
     [SerializeField] GameObject rigidPrefabTest1;
     [SerializeField] GameObject[] skinnedOutfitPrefabTests;
     #endregion
@@ -27,7 +28,7 @@ public class ModularCharTest : MonoBehaviour
         }
         modularBoneSystem = new ModularBoneSystem();
         modularEquipmentSystem = new ModularEquipmentSystem(modularBoneSystem);
-        modularEquipmentSystem.ChangeRigidPart(modularCharMonoRef, ModularPartType.Rigid, rigidPrefabTest1);
+        modularEquipmentSystem.ChangeRigidPart(modularCharMonoRef, ModularPartType.Rigid, rigidPrefabTest1, rigidPartStaysWorldPosition);
         if (skinnedOutfitPrefabTests != null && skinnedOutfitPrefabTests.Length > 0)
         {
             switch (skinnedOutfitPrefabTests.Length)
