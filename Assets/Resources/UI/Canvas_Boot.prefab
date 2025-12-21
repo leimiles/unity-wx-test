@@ -192,15 +192,15 @@ MonoBehaviour:
       m_Calls: []
   m_text: 
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 4fb4b51c5f4e84cfc940851f0728bfbc, type: 2}
-  m_sharedMaterial: {fileID: -1895591174926498930, guid: 4fb4b51c5f4e84cfc940851f0728bfbc,
+  m_fontAsset: {fileID: 11400000, guid: 759b7cab0c6f24aa6bc754bb119a12c1, type: 2}
+  m_sharedMaterial: {fileID: 2766097875159127982, guid: 759b7cab0c6f24aa6bc754bb119a12c1,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294308335
+    rgba: 4293913062
   m_fontColor: {r: 0.9019608, g: 0.9137255, b: 0.9372549, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -320,7 +320,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 1
-  m_AdditionalShaderChannelsFlag: 0
+  m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
