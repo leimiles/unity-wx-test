@@ -65,6 +65,15 @@ public class BootUI : MonoBehaviour
         if (_completeBinding != null) EventBus<BootstrapCompleteEvent>.Deregister(_completeBinding);
         _completeBinding = null;
 
+        if (_subSystemStartBinding != null) EventBus<SubSystemInitializationStartEvent>.Deregister(_subSystemStartBinding);
+        _subSystemStartBinding = null;
+
+        if (_subSystemProgressBinding != null) EventBus<SubSystemInitializationProgressEvent>.Deregister(_subSystemProgressBinding);
+        _subSystemProgressBinding = null;
+
+        if (_subSystemCompleteBinding != null) EventBus<SubSystemInitializationCompleteEvent>.Deregister(_subSystemCompleteBinding);
+        _subSystemCompleteBinding = null;
+
         CancelFade();
     }
 
