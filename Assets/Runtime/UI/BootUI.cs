@@ -19,7 +19,9 @@ public class BootUI : MonoBehaviour
 
     EventBinding<BootstrapProgressEvent> _progressBinding;
     EventBinding<BootstrapCompleteEvent> _completeBinding;
-
+    EventBinding<SubSystemInitializationStartEvent> _subSystemStartBinding;
+    EventBinding<SubSystemInitializationProgressEvent> _subSystemProgressBinding;
+    EventBinding<SubSystemInitializationCompleteEvent> _subSystemCompleteBinding;
     CancellationTokenSource _fadeCts;
 
     void Awake()
@@ -41,6 +43,15 @@ public class BootUI : MonoBehaviour
 
         _completeBinding = new EventBinding<BootstrapCompleteEvent>(OnBootComplete);
         EventBus<BootstrapCompleteEvent>.Register(_completeBinding);
+
+        _subSystemStartBinding = new EventBinding<SubSystemInitializationStartEvent>(OnSubSystemStart);
+        EventBus<SubSystemInitializationStartEvent>.Register(_subSystemStartBinding);
+
+        _subSystemProgressBinding = new EventBinding<SubSystemInitializationProgressEvent>(OnSubSystemProgress);
+        EventBus<SubSystemInitializationProgressEvent>.Register(_subSystemProgressBinding);
+
+        _subSystemCompleteBinding = new EventBinding<SubSystemInitializationCompleteEvent>(OnSubSystemComplete);
+        EventBus<SubSystemInitializationCompleteEvent>.Register(_subSystemCompleteBinding);
 
         // 启动淡入（不阻塞）
         _ = FadeInAsync();
@@ -71,6 +82,22 @@ public class BootUI : MonoBehaviour
 
         // 最小收口：淡出后隐藏（不 Destroy）
         _ = FadeOutThenHideAsync();
+    }
+
+    void OnSubSystemStart(SubSystemInitializationStartEvent e)
+    {
+        if (_progressText != null) _progressText.text = $"({e.subSystemName} | Starting...) - {_progressText.text}";
+    }
+
+    void OnSubSystemProgress(SubSystemInitializationProgressEvent e)
+    {
+        var p01 = Mathf.Clamp01(e.progress);
+        if (_progressText != null) _progressText.text = $"({e.subSystemName} | {p01 * 100f:0}%) - {_progressText.text}";
+    }
+
+    void OnSubSystemComplete(SubSystemInitializationCompleteEvent e)
+    {
+        if (_progressText != null) _progressText.text = $"({e.subSystemName} | {e.message}) - {_progressText.text}";
     }
 
     async UniTask FadeInAsync()
