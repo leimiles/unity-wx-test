@@ -135,6 +135,8 @@ public class Bootstrap : MonoBehaviour
                 try { s.Dispose(); } catch { }
             }
             _subSystems.Clear();
+            _services?.Clear();
+            _services = null;
 
             EventBus<BootstrapCompleteEvent>.Raise(
                 new BootstrapCompleteEvent
@@ -151,14 +153,14 @@ public class Bootstrap : MonoBehaviour
     {
         // 创建 YooSubSystem
         var yooService = new YooService(bootstrapConfigs.yooSettings);
-        _services.Register(yooService);
+        _services.Register<IYooService>(yooService);
         var yooSubSystem = new YooSubSystem(yooService);
         RegisterSubSystem(yooSubSystem);
 
         // 创建 GameSceneSubSystem
         var gameSceneService = new GameSceneService(yooService);
         var gameSceneSubSystem = new GameSceneSubSystem(gameSceneService);
-        _services.Register(gameSceneService);
+        _services.Register<IGameSceneService>(gameSceneService);
         RegisterSubSystem(gameSceneSubSystem);
 
 

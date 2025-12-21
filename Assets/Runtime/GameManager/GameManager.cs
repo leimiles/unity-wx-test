@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using MilesUtils;
 using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
 
 public class GameManager : PersistentSingleton<GameManager>
 {
@@ -17,6 +19,9 @@ public class GameManager : PersistentSingleton<GameManager>
         }
     }
 
+    IGameFlow _entryFlow;
+    CancellationTokenSource _flowCts;
+
     protected override void Awake()
     {
         base.Awake();
@@ -24,6 +29,7 @@ public class GameManager : PersistentSingleton<GameManager>
 
     void OnDestroy()
     {
+        _flowCts?.Cancel();
         if (_subSystems != null)
         {
             foreach (var subSystem in _subSystems)
@@ -40,6 +46,7 @@ public class GameManager : PersistentSingleton<GameManager>
         }
 
         _services?.Clear();
+        _flowCts?.Dispose();
     }
 
     public void AttachContext(IReadOnlyList<ISubSystem> subSystems, IGameServices services)
@@ -51,6 +58,10 @@ public class GameManager : PersistentSingleton<GameManager>
         _attached = true;
         _subSystems = new List<ISubSystem>(subSystems);
         _services = services;
+
+        _flowCts = new CancellationTokenSource();
+        _entryFlow = new DemoFlow(_services);
+        _entryFlow.RunAsync(_flowCts.Token).Forget();
     }
 
 }

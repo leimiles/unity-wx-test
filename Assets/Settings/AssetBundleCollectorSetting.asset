@@ -35,7 +35,7 @@ MonoBehaviour:
         CollectorType: 0
         AddressRuleName: AddressByFileName
         PackRuleName: PackDirectory
-        FilterRuleName: CollectAll
+        FilterRuleName: CollectPrefab
         AssetTags: 
         UserData: 
       - CollectPath: Assets/Arts/Sausages/Characters/MiaoXingRenDaJuZi/Prefabs
@@ -43,7 +43,7 @@ MonoBehaviour:
         CollectorType: 0
         AddressRuleName: AddressByFileName
         PackRuleName: PackDirectory
-        FilterRuleName: CollectAll
+        FilterRuleName: CollectPrefab
         AssetTags: 
         UserData: 
       - CollectPath: Assets/Arts/Sausages/Characters/SuperApple/Prefabs
@@ -51,6 +51,19 @@ MonoBehaviour:
         CollectorType: 0
         AddressRuleName: AddressByFileName
         PackRuleName: PackDirectory
-        FilterRuleName: CollectAll
+        FilterRuleName: CollectPrefab
+        AssetTags: 
+        UserData: 
+    - GroupName: Scenes
+      GroupDesc: 
+      AssetTags: 
+      ActiveRuleName: EnableGroup
+      Collectors:
+      - CollectPath: Assets/Scenes/Game
+        CollectorGUID: 62bf9dd24c5d04275bcf634b41e22075
+        CollectorType: 0
+        AddressRuleName: AddressByFileName
+        PackRuleName: PackDirectory
+        FilterRuleName: CollectScene
         AssetTags: 
         UserData: 
