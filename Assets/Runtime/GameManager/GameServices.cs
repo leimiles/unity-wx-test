@@ -1,6 +1,4 @@
-using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using System;
 
 public interface IGameServices
@@ -11,6 +9,13 @@ public interface IGameServices
     /// <typeparam name="T"></typeparam>
     /// <param name="instance"></param>
     void Register<T>(T instance) where T : class;
+    /// <summary>
+    /// 注册服务，如果服务已存在，则替换
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="instance"></param>
+    void RegisterOrReplace<T>(T instance) where T : class;
+
     /// <summary>
     /// 尝试获取服务
     /// </summary>
@@ -30,6 +35,11 @@ public interface IGameServices
     /// <typeparam name="T"></typeparam>
     /// <returns></returns>
     bool IsRegistered<T>() where T : class;
+    /// <summary>
+    /// 清空所有已注册的服务
+    /// </summary>
+    void Clear();
+
 }
 
 public sealed class GameServices : IGameServices
@@ -49,6 +59,12 @@ public sealed class GameServices : IGameServices
 
             _map[type] = instance;
         }
+    }
+
+    public void RegisterOrReplace<T>(T instance) where T : class
+    {
+        if (instance == null) throw new ArgumentNullException(nameof(instance));
+        lock (_gate) { _map[typeof(T)] = instance; }
     }
 
     public bool TryGet<T>(out T instance) where T : class
@@ -72,9 +88,32 @@ public sealed class GameServices : IGameServices
 
         throw new KeyNotFoundException(
             $"Service not registered: {typeof(T).FullName}. " +
-            $"Make sure it is registered in GameManager before use."
+            $"Make sure it is registered during bootstrapping."
         );
     }
 
+    public void Clear()
+    {
+        lock (_gate) _map.Clear();
+    }
+
+
     public bool IsRegistered<T>() where T : class => TryGet<T>(out _);
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+    /// <summary>
+    /// 打印所有已注册的服务
+    /// </summary>
+    /// <returns></returns>
+    public string Dump()
+    {
+        lock (_gate)
+        {
+            var names = new List<string>(_map.Count);
+            foreach (var k in _map.Keys) names.Add(k.FullName);
+            names.Sort(StringComparer.Ordinal);
+            return string.Join("\n", names);
+        }
+    }
+#endif
 }

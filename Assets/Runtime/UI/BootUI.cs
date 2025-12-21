@@ -5,7 +5,7 @@ using Cysharp.Threading.Tasks;
 using System.Threading;
 
 [DisallowMultipleComponent]
-public class LoadingUI : MonoBehaviour
+public class BootUI : MonoBehaviour
 {
     [Header("UI Refs")]
     [SerializeField] Slider _progressSlider;

@@ -125,7 +125,14 @@ public class Bootstrap : MonoBehaviour
         }
         catch (Exception e)
         {
-            Debug.LogError($"GameManager StartBootSequence Failed: {e.Message}");
+            Debug.LogError($"Bootstrap StartBootSequence Failed: {e.Message}");
+
+            // 失败兜底：释放已创建的子系统资源
+            foreach (var s in _subSystems)
+            {
+                try { s.Dispose(); } catch { }
+            }
+            _subSystems.Clear();
 
             EventBus<BootstrapCompleteEvent>.Raise(
                 new BootstrapCompleteEvent
@@ -140,20 +147,18 @@ public class Bootstrap : MonoBehaviour
 
     void CreateSubSystems(BootstrapConfigs bootstrapConfigs)
     {
-        //1. 创建 YooSubSystem
-        if (bootstrapConfigs.yooSettings != null)
-        {
-            var yooService = new YooService(bootstrapConfigs.yooSettings);
-            // Services.Register<IYooService>(yooService);
+        // 创建 YooSubSystem
+        var yooService = new YooService(bootstrapConfigs.yooSettings);
+        var yooSubSystem = new YooSubSystem(yooService);
+        RegisterSubSystem(yooSubSystem);
 
-            var yooSubSystem = new YooSubSystem(yooService);
-            RegisterSubSystem(yooSubSystem);
-        }
-        else
-        {
-            Debug.LogError("YooSettings is null, can't create YooSubSystem");
-        }
+        // 创建 GameSceneSubSystem
+        var gameSceneService = new GameSceneService(yooService);
+        var gameSceneSubSystem = new GameSceneSubSystem(gameSceneService);
+        RegisterSubSystem(gameSceneSubSystem);
 
+
+        // ------------------------------------------------------------
         // 可以继续添加其他子系统
         // var testSubSystem = new TestSubSystem();
         // RegisterSubSystem(testSubSystem);

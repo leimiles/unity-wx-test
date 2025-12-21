@@ -10,12 +10,10 @@ public class GameSceneSubSystem : ISubSystem
     public bool IsRequired => true;
     public bool IsInitialized => _gameSceneService.IsInitialized;
 
-    public GameSceneSubSystem(IYooService yooService)
+    public GameSceneSubSystem(IGameSceneService gameSceneService)
     {
-        if (yooService == null)
-            throw new ArgumentNullException(nameof(yooService));
-
-        _gameSceneService = new GameSceneService(yooService);
+        _gameSceneService = gameSceneService
+            ?? throw new ArgumentNullException(nameof(gameSceneService));
     }
 
     public UniTask InitializeAsync(IProgress<float> progress)
