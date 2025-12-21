@@ -12,6 +12,7 @@ public class Bootstrap : MonoBehaviour
     float _bootStartTime;
     EventBinding<BootstrapCompleteEvent> _bootCompleteBinding;
     readonly List<ISubSystem> _subSystems = new();
+    IGameServices _services;
     GameObject _bootUI;
     const string kBootUIPath = "UI/Canvas_Boot";
 
@@ -44,6 +45,7 @@ public class Bootstrap : MonoBehaviour
                 return;
             }
             bootstrapConfigs.Validate();
+            _services = new GameServices();
             var gameManager = GameManager.Instance; // 确保 GameManager 已经初始化
             StartBootSequence(bootstrapConfigs).Forget();
         }
@@ -67,7 +69,7 @@ public class Bootstrap : MonoBehaviour
         {
             Debug.Log("Bootstrap complete");
             //将子系统列表传递给GameManager
-            GameManager.Instance.AttachSubSystems(_subSystems);
+            GameManager.Instance.AttachContext(_subSystems, _services);
             //加载主场景
 
             //自毁
@@ -149,12 +151,14 @@ public class Bootstrap : MonoBehaviour
     {
         // 创建 YooSubSystem
         var yooService = new YooService(bootstrapConfigs.yooSettings);
+        _services.Register(yooService);
         var yooSubSystem = new YooSubSystem(yooService);
         RegisterSubSystem(yooSubSystem);
 
         // 创建 GameSceneSubSystem
         var gameSceneService = new GameSceneService(yooService);
         var gameSceneSubSystem = new GameSceneSubSystem(gameSceneService);
+        _services.Register(gameSceneService);
         RegisterSubSystem(gameSceneSubSystem);
 
 
