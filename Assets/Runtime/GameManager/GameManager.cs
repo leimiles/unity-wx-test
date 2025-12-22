@@ -47,6 +47,14 @@ public class GameManager : PersistentSingleton<GameManager>
 
         _services?.Clear();
         _flowCts?.Dispose();
+
+        // just in case
+        _entryFlow = null;
+        _flowCts = null;
+        _services = null;
+        _subSystems = null;
+        _attached = false;
+
     }
 
     public void AttachContext(IReadOnlyList<ISubSystem> subSystems, IGameServices services)
@@ -59,8 +67,18 @@ public class GameManager : PersistentSingleton<GameManager>
         _subSystems = new List<ISubSystem>(subSystems);
         _services = services;
 
+        StartEntryFlow();
+    }
+
+    void StartEntryFlow()
+    {
+        if (_flowCts != null)
+        {
+            _flowCts.Cancel();
+            _flowCts.Dispose();
+        }
         _flowCts = new CancellationTokenSource();
-        _entryFlow = new DemoFlow(_services);
+        _entryFlow = new EntryFlow(_services);
         _entryFlow.RunAsync(_flowCts.Token).Forget();
     }
 
