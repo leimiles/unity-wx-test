@@ -392,7 +392,7 @@ public sealed class YooService : IYooService
         }
         catch (Exception e)
         {
-            Debug.LogError($"YooUtils initialization failed: {e}");
+            Debug.LogError($"YooService initialization failed: {e}");
             //OnInitializeFailed?.Invoke(e.Message);
             throw;
         }
