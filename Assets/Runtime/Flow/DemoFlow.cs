@@ -12,16 +12,18 @@ public class DemoFlow : IGameFlow
     }
     public async UniTask RunAsync(CancellationToken ct)
     {
-        var sceneService = _services.Get<IGameSceneService>();
+        // 暂时什么都不做
+        Debug.Log("DemoFlow: RunAsync");
+        // var sceneService = _services.Get<IGameSceneService>();
 
-        var yooService = _services.Get<IYooService>();
+        // var yooService = _services.Get<IYooService>();
 
-        var assetInfo = yooService.GetAssetInfo("Main");
+        // var assetInfo = yooService.GetAssetInfo("Main");
 
-        if (assetInfo != null)
-        {
-            Debug.Log($"assetInfo: <color=red>{assetInfo.Error}</color>");
-        }
+        // if (assetInfo != null)
+        // {
+        //     Debug.Log($"assetInfo: <color=red>{assetInfo.Error}</color>");
+        // }
         //await sceneService.LoadSceneAsync("Main").AttachExternalCancellation(ct);
     }
 }

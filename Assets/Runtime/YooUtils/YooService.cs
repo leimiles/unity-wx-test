@@ -287,7 +287,7 @@ public sealed class YooService : IYooService
             }
 
             packageVersion = versionOperation.PackageVersion;
-            Debug.Log($"Package version: {packageVersion}");
+            Debug.Log($"Package version: <color=red>{packageVersion}</color>");
 
             // 6. Update package manifest
             Debug.Log("Step 6: Update package manifest...");
@@ -301,14 +301,89 @@ public sealed class YooService : IYooService
             }
 
             Debug.Log("Package manifest updated successfully");
-
             progress?.Report(0.85f);
 
+
+            // 6.5 检查需要下载的资源
+            Debug.Log("Step 6.5: Check resources need to download...");
+            int downloadingMaxNumber = 10;
+            int failedTryAgain = 3;
+            var downloader = currentPackage.CreateResourceDownloader(downloadingMaxNumber, failedTryAgain);
+            if (downloader == null)
+            {
+                throw new InvalidOperationException("[YooService] 创建下载器失败");
+            }
+
+            if (downloader.TotalDownloadCount > 0)
+            {
+                int totalDownloadCount = downloader.TotalDownloadCount;
+                long totalDownloadBytes = downloader.TotalDownloadBytes;
+                Debug.Log($"Found {totalDownloadCount} resources need to download, total size: {totalDownloadBytes / 1024.0 / 1024.0:F2} MB");
+
+                // 自动更新：执行下载
+                Debug.Log("Step 6.6: Auto-updating resources...");
+                try
+                {
+                    // todo: 检查磁盘空间
+                    // 开始下载
+                    downloader.BeginDownload();
+
+                    // 监控下载进度
+                    while (!downloader.IsDone)
+                    {
+                        float downloadProgress = downloader.Progress;
+                        // 将下载进度映射到 0.85-0.95 之间
+                        float mappedProgress = 0.85f + downloadProgress * 0.1f;
+                        progress?.Report(mappedProgress);
+                        await UniTask.Yield();
+                    }
+
+                    // 检查下载结果
+                    if (downloader.Status == EOperationStatus.Succeed)
+                    {
+                        Debug.Log($"Auto-update completed successfully: {totalDownloadCount} files downloaded");
+                        progress?.Report(0.95f);
+                    }
+                    else
+                    {
+                        string error = downloader.Error ?? "未知错误";
+                        Debug.LogError($"Auto-update failed: {error}");
+                        throw new Exception($"资源自动更新失败: {error}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"Auto-update exception: {ex.Message}");
+                    throw; // 重新抛出异常，让上层处理
+                }
+            }
+            else
+            {
+                Debug.Log("No resources need to download, skip update step");
+                progress?.Report(0.9f);
+            }
+
+            // 6.7 Clear unused cache files
+            Debug.Log("Step 6.7: Clear unused cache files...");
+            var clearCacheOperation = currentPackage.ClearCacheFilesAsync(EFileClearMode.ClearUnusedBundleFiles);
+            await clearCacheOperation.ToUniTask();
+
+            if (clearCacheOperation.Status == EOperationStatus.Succeed)
+            {
+                Debug.Log($"Clear cache completed successfully");
+            }
+            else
+            {
+                Debug.LogWarning($"Clear cache failed: {clearCacheOperation.Error}");
+                // 清理缓存失败不影响初始化，只记录警告
+            }
+            progress?.Report(0.96f);
 
             // 7. Set default package
             YooAssets.SetDefaultPackage(currentPackage);
             Debug.Log("Default package set successfully");
-            progress?.Report(0.9f);
+            // 统一进度：如果有下载则从0.95继续，如果没有下载则从0.9继续
+            progress?.Report(0.98f);
 
             _isInitialized = true;
             progress?.Report(1.0f);
