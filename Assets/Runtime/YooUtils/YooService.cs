@@ -275,38 +275,35 @@ public sealed class YooService : IYooService
 
             // 5. Request package version
             string packageVersion = null;
-            if (settings.playMode == EPlayMode.HostPlayMode || settings.playMode == EPlayMode.WebPlayMode || settings.playMode == EPlayMode.CustomPlayMode)
+
+            Debug.Log("Step 5: Request package version...");
+            var versionOperation = currentPackage.RequestPackageVersionAsync(false);
+            await versionOperation.ToUniTask();
+            progress?.Report(0.65f);
+
+            if (versionOperation.Status != EOperationStatus.Succeed)
             {
-                Debug.Log("Step 5: Request package version...");
-                var versionOperation = currentPackage.RequestPackageVersionAsync(false);
-                await versionOperation.ToUniTask();
-                progress?.Report(0.65f);
-
-                if (versionOperation.Status != EOperationStatus.Succeed)
-                {
-                    throw new System.Exception($"Request package version failed: {versionOperation.Error}");
-                }
-
-                packageVersion = versionOperation.PackageVersion;
-                Debug.Log($"Package version: {packageVersion}");
-
-                // 6. Update package manifest
-                Debug.Log("Step 6: Update package manifest...");
-                var manifestOperation = currentPackage.UpdatePackageManifestAsync(packageVersion);
-                await manifestOperation.ToUniTask();
-                progress?.Report(0.85f);
-
-                if (manifestOperation.Status != EOperationStatus.Succeed)
-                {
-                    throw new System.Exception($"Update package manifest failed: {manifestOperation.Error}");
-                }
-
-                Debug.Log("Package manifest updated successfully");
+                throw new System.Exception($"Request package version failed: {versionOperation.Error}");
             }
-            else
+
+            packageVersion = versionOperation.PackageVersion;
+            Debug.Log($"Package version: {packageVersion}");
+
+            // 6. Update package manifest
+            Debug.Log("Step 6: Update package manifest...");
+            var manifestOperation = currentPackage.UpdatePackageManifestAsync(packageVersion);
+            await manifestOperation.ToUniTask();
+            progress?.Report(0.85f);
+
+            if (manifestOperation.Status != EOperationStatus.Succeed)
             {
-                progress?.Report(0.85f);
+                throw new System.Exception($"Update package manifest failed: {manifestOperation.Error}");
             }
+
+            Debug.Log("Package manifest updated successfully");
+
+            progress?.Report(0.85f);
+
 
             // 7. Set default package
             YooAssets.SetDefaultPackage(currentPackage);
