@@ -97,18 +97,32 @@ public class BootUI : MonoBehaviour
 
     void OnSubSystemStart(SubSystemInitializationStartEvent e)
     {
-        if (_progressText != null) _progressText.text = $"({e.subSystemName} | Starting...) - {_progressText.text}";
+        if (_progressText != null)
+        {
+            var info = $"({e.subSystemName} | Starting...)";
+            _progressText.text = info;
+            //Debug.Log($"<color=red>{info}</color>");
+        }
     }
 
     void OnSubSystemProgress(SubSystemInitializationProgressEvent e)
     {
-        var p01 = Mathf.Clamp01(e.progress);
-        if (_progressText != null) _progressText.text = $"({e.subSystemName} | {p01 * 100f:0}%) - {_progressText.text}";
+        if (_progressText != null)
+        {
+            var info = $"({e.subSystemName} | {e.progress * 100f:0}%) - {e.totalProgress * 100f:0}%";
+            _progressText.text = info;
+            //Debug.Log($"<color=green>{info}</color>");
+        }
     }
 
     void OnSubSystemComplete(SubSystemInitializationCompleteEvent e)
     {
-        if (_progressText != null) _progressText.text = $"({e.subSystemName} | {e.message}) - {_progressText.text}";
+        if (_progressText != null)
+        {
+            var info = $"({e.subSystemName} | {e.message})";
+            _progressText.text = info;
+            //Debug.Log($"<color=blue>{info}</color>");
+        }
     }
 
     async UniTask FadeInAsync()
