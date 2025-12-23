@@ -9,11 +9,7 @@ public interface IGameWorld
     public Transform StartPosition { get; }
 }
 
-public readonly struct GameWorldEnterEvent : IEvent
+public struct GameWorldEnterEvent : IEvent
 {
-    public CancellationToken CancellationToken { get; }
-    public GameWorldEnterEvent(CancellationToken cancellationToken)
-    {
-        CancellationToken = cancellationToken;
-    }
+    public string gameWorldName;
 }

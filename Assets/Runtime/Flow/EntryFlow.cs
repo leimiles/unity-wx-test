@@ -12,10 +12,7 @@ public class EntryFlow : IGameFlow
     }
     public async UniTask RunAsync(CancellationToken ct)
     {
-        var sceneService = _services.Get<IGameSceneService>();
-        await sceneService.LoadSceneAsync("Main").AttachExternalCancellation(ct);
-
-        // 重置游戏世界
-        EventBus<GameWorldEnterEvent>.Raise(new GameWorldEnterEvent(ct));
+        // 暂不实现
+        await UniTask.CompletedTask;
     }
 }
