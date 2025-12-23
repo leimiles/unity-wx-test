@@ -14,23 +14,23 @@ jobs:
   code-review:
     name: Automated Code Review
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Fetch all history for better analysis
-      
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-      
+
       - name: Install review tools
         run: |
           # Install ESLint for JavaScript/Node.js code review
           npm install -g eslint
-          
+
           # Create a simple ESLint config if Server directory needs it
           if [ -f "Server/package.json" ]; then
             cd Server
@@ -39,49 +39,49 @@ jobs:
             fi
             cd ..
           fi
-      
+
       - name: Analyze C# code
         id: csharp-review
         continue-on-error: true
         run: |
           echo "## C# Code Analysis" > /tmp/csharp-review.txt
           echo "" >> /tmp/csharp-review.txt
-          
+
           # Count C# files
           cs_count=$(find Assets -name "*.cs" 2>/dev/null | wc -l)
           echo "Found $cs_count C# files" >> /tmp/csharp-review.txt
           echo "" >> /tmp/csharp-review.txt
-          
+
           # Find recent changes (last 24 hours)
           echo "### Recent Changes:" >> /tmp/csharp-review.txt
           git log --since="24 hours ago" --name-only --pretty=format:"- Commit: %h - %s (by %an)" -- "*.cs" >> /tmp/csharp-review.txt || echo "No recent C# changes" >> /tmp/csharp-review.txt
           echo "" >> /tmp/csharp-review.txt
-          
+
           # Code statistics
           echo "### Code Statistics:" >> /tmp/csharp-review.txt
           total_lines=$(find Assets -name "*.cs" -exec cat {} \; 2>/dev/null | wc -l)
           echo "- Total lines of C# code: $total_lines" >> /tmp/csharp-review.txt
-          
+
           # Find large files (potential complexity)
           echo "" >> /tmp/csharp-review.txt
           echo "### Large Files (>500 lines):" >> /tmp/csharp-review.txt
           find Assets -name "*.cs" -exec wc -l {} \; 2>/dev/null | sort -rn | head -10 | awk '$1 > 500 {print "- " $2 " (" $1 " lines)"}' >> /tmp/csharp-review.txt || echo "None found" >> /tmp/csharp-review.txt
-      
+
       - name: Analyze JavaScript/Node.js code
         id: js-review
         continue-on-error: true
         run: |
           echo "## JavaScript/Node.js Code Analysis" > /tmp/js-review.txt
           echo "" >> /tmp/js-review.txt
-          
+
           if [ -d "Server" ]; then
             cd Server
-            
+
             # Count JS files
             js_count=$(find . -name "*.js" 2>/dev/null | wc -l)
             echo "Found $js_count JavaScript files" >> /tmp/js-review.txt
             echo "" >> /tmp/js-review.txt
-            
+
             # Check for package.json and dependencies
             if [ -f "package.json" ]; then
               echo "### Package Information:" >> /tmp/js-review.txt
@@ -90,12 +90,12 @@ jobs:
               echo "\`\`\`" >> /tmp/js-review.txt
               echo "" >> /tmp/js-review.txt
             fi
-            
+
             # Recent changes
             echo "### Recent Changes:" >> /tmp/js-review.txt
             git log --since="24 hours ago" --name-only --pretty=format:"- Commit: %h - %s (by %an)" -- Server/ >> /tmp/js-review.txt || echo "No recent Server changes" >> /tmp/js-review.txt
             echo "" >> /tmp/js-review.txt
-            
+
             # Try to run ESLint if possible
             if [ -f "package.json" ]; then
               npm install --no-save 2>&1 | head -5 >> /tmp/js-review.txt || true
@@ -103,31 +103,31 @@ jobs:
               echo "### Code Quality Check:" >> /tmp/js-review.txt
               npx eslint . --format=compact 2>&1 | head -20 >> /tmp/js-review.txt || echo "ESLint check completed with issues or not configured" >> /tmp/js-review.txt
             fi
-            
+
             cd ..
           else
             echo "No Server directory found" >> /tmp/js-review.txt
           fi
-      
+
       - name: Security check
         id: security-review
         continue-on-error: true
         run: |
           echo "## Security Analysis" > /tmp/security-review.txt
           echo "" >> /tmp/security-review.txt
-          
+
           # Check for common security issues
           echo "### Potential Security Concerns:" >> /tmp/security-review.txt
-          
+
           # Check for hardcoded credentials
           echo "#### Checking for hardcoded credentials:" >> /tmp/security-review.txt
           grep -r "password\s*=\|api_key\s*=\|secret\s*=" Assets/ Server/ --include="*.cs" --include="*.js" 2>/dev/null | head -5 >> /tmp/security-review.txt || echo "None found" >> /tmp/security-review.txt
           echo "" >> /tmp/security-review.txt
-          
+
           # Check for TODO/FIXME comments
           echo "#### Outstanding TODO/FIXME items:" >> /tmp/security-review.txt
           grep -r "TODO\|FIXME" Assets/ Server/ --include="*.cs" --include="*.js" 2>/dev/null | head -10 >> /tmp/security-review.txt || echo "None found" >> /tmp/security-review.txt
-      
+
       - name: Generate summary report
         id: generate-report
         run: |
@@ -137,25 +137,25 @@ jobs:
           echo "" >> /tmp/review-report.md
           echo "**Repository:** unity-wx-test" >> /tmp/review-report.md
           echo "" >> /tmp/review-report.md
-          
+
           # Add C# review
           cat /tmp/csharp-review.txt >> /tmp/review-report.md
           echo "" >> /tmp/review-report.md
           echo "---" >> /tmp/review-report.md
           echo "" >> /tmp/review-report.md
-          
+
           # Add JS review
           cat /tmp/js-review.txt >> /tmp/review-report.md
           echo "" >> /tmp/review-report.md
           echo "---" >> /tmp/review-report.md
           echo "" >> /tmp/review-report.md
-          
+
           # Add security review
           cat /tmp/security-review.txt >> /tmp/review-report.md
           echo "" >> /tmp/review-report.md
           echo "---" >> /tmp/review-report.md
           echo "" >> /tmp/review-report.md
-          
+
           # Add recommendations
           echo "## Recommendations" >> /tmp/review-report.md
           echo "" >> /tmp/review-report.md
@@ -168,10 +168,10 @@ jobs:
           echo "---" >> /tmp/review-report.md
           echo "" >> /tmp/review-report.md
           echo "*This is an automated review. For detailed code analysis, please review the GitHub Actions logs.*" >> /tmp/review-report.md
-          
+
           # Display the report
           cat /tmp/review-report.md
-      
+
       - name: Send email with review results
         uses: dawidd6/action-send-mail@v3
         with:
@@ -179,24 +179,24 @@ jobs:
           server_address: smtp.gmail.com
           server_port: 465
           secure: true
-          
+
           # Authentication (use repository secrets for security)
           # You need to configure these secrets in your GitHub repository settings
           username: ${{secrets.MAIL_USERNAME}}
           password: ${{secrets.MAIL_PASSWORD}}
-          
+
           # Email details
           subject: 'Daily Code Review Report - ${{github.repository}} - ${{github.run_number}}'
           to: leimiles_18@hotmail.com
           from: GitHub Actions Code Review
-          
+
           # Email body - can be HTML or plain text
           html_body: file:///tmp/review-report.md
           convert_markdown: true
-          
+
           # Optionally attach the full report
           attachments: /tmp/review-report.md
-      
+
       - name: Upload review report as artifact
         uses: actions/upload-artifact@v4
         if: always()
