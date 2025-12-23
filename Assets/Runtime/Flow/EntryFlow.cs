@@ -14,5 +14,8 @@ public class EntryFlow : IGameFlow
     {
         var sceneService = _services.Get<IGameSceneService>();
         await sceneService.LoadSceneAsync("Main").AttachExternalCancellation(ct);
+
+        // 重置游戏世界
+        EventBus<GameWorldEnterEvent>.Raise(new GameWorldEnterEvent(ct));
     }
 }

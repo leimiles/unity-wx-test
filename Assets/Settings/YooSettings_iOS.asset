@@ -20,4 +20,4 @@ MonoBehaviour:
   packageName: DefaultPackage
   needNetworkVerified: 1
   networkVerifiedAssetName: DefaultPackage.version
-  playMode: 2
+  playMode: 0

@@ -159,6 +159,11 @@ public class Bootstrap : MonoBehaviour
         _services.Register<IGameSceneService>(gameSceneService);
         RegisterSubSystem(gameSceneSubSystem);
 
+        // 创建 GameWorldSubSystem
+        var gameWorldService = new GameWorldService();
+        var gameWorldSubSystem = new GameWorldSubSystem(gameWorldService);
+        _services.Register<IGameWorldService>(gameWorldService);
+        RegisterSubSystem(gameWorldSubSystem);
 
         // ------------------------------------------------------------
         // 可以继续添加其他子系统
