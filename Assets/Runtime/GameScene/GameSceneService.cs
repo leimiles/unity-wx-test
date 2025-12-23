@@ -63,7 +63,7 @@ public class GameSceneService : IGameSceneService
         var sceneHandle = await _yooService.LoadSceneAsync(sceneName, loadMode);
 
         // 3. 激活场景（使用同步方法）
-        if (!sceneHandle.ActivateScene())
+        if (loadMode != LoadSceneMode.Single && !sceneHandle.ActivateScene())
         {
             Debug.LogWarning($"[GameSceneService] 场景激活失败: {sceneName}");
         }
