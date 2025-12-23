@@ -381,8 +381,8 @@ MonoBehaviour:
   _progressText: {fileID: 7089661500593792008}
   _LoadingBackgroundImage: {fileID: 88269422783224392}
   _canvasGroup: {fileID: 7874143061763167357}
-  _fadeInSeconds: 0.15
-  _fadeOutSeconds: 0.25
+  _fadeInSeconds: 1
+  _fadeOutSeconds: 1
 --- !u!225 &7874143061763167357
 CanvasGroup:
   m_ObjectHideFlags: 0

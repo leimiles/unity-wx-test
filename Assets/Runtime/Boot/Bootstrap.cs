@@ -68,13 +68,9 @@ public class Bootstrap : MonoBehaviour
         if (e.isSuccess)
         {
             Debug.Log("Bootstrap complete");
-            //将子系统列表传递给GameManager
+            //将子系统列表传递给GameManager，系统由GameManager管理
             GameManager.Instance.AttachContext(_subSystems, _services);
-            //加载主场景
-
             //自毁
-            Destroy(_bootUI);
-            _bootUI = null;
             Destroy(gameObject);
         }
         else

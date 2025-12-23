@@ -26,6 +26,8 @@ public class BootUI : MonoBehaviour
 
     void Awake()
     {
+        // 会在生成后自动销毁，所以需要DontDestroyOnLoad
+        DontDestroyOnLoad(gameObject);
         if (_canvasGroup == null)
             _canvasGroup = GetComponent<CanvasGroup>();
 
@@ -57,7 +59,7 @@ public class BootUI : MonoBehaviour
         _ = FadeInAsync();
     }
 
-    void OnDisable()
+    void OnDestroy()
     {
         if (_progressBinding != null) EventBus<BootstrapProgressEvent>.Deregister(_progressBinding);
         _progressBinding = null;
@@ -142,8 +144,8 @@ public class BootUI : MonoBehaviour
 
         await FadeToAsync(0f, _fadeOutSeconds, _fadeCts.Token);
 
-        // 触发 OnDisable -> 自动解绑事件
-        gameObject.SetActive(false);
+        // 淡出之后销毁
+        Destroy(gameObject);
     }
 
     async UniTask FadeToAsync(float targetAlpha, float duration, CancellationToken ct)
