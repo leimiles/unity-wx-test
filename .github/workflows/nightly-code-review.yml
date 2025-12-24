@@ -35,6 +35,9 @@ jobs:
             | sort | uniq | grep "\.cs$" || echo "")
 
           echo "$CHANGED_FILES" > /tmp/changed_files.txt
+          echo "Detected C# files changed in last 24h (Assets/Runtime):"
+          echo "$CHANGED_FILES"
+          echo "FILE_COUNT=$FILE_COUNT"
           # 计算文件数量，使用 wc -l 更可靠
           if [ -z "$CHANGED_FILES" ]; then
             FILE_COUNT=0
@@ -90,7 +93,7 @@ jobs:
             echo "" >> /tmp/code_snippets.md
 
             # 获取最近一次修改此文件的 commit
-            LAST_COMMIT=$(git log -1 --since="24 hours ago" --pretty=format:"%h" -- "$file")
+            LAST_COMMIT=$(git log -1 develop --since="24 hours ago" --pretty=format:"%h" -- "$file")
 
             if [ -n "$LAST_COMMIT" ]; then
               COMMIT_MSG=$(git log -1 --pretty=format:"%s" "$LAST_COMMIT")
@@ -102,7 +105,7 @@ jobs:
               echo "<summary>View Diff</summary>" >> /tmp/code_snippets.md
               echo "" >> /tmp/code_snippets.md
               echo "\`\`\`diff" >> /tmp/code_snippets.md
-              git show "$LAST_COMMIT" -- "$file" | tail -n +5 | head -n 150 >> /tmp/code_snippets.md
+              git show --pretty=format: --patch "$LAST_COMMIT" -- "$file" | head -n 200 >> /tmp/code_snippets.md
               echo "\`\`\`" >> /tmp/code_snippets.md
               echo "</details>" >> /tmp/code_snippets.md
               echo "" >> /tmp/code_snippets.md
