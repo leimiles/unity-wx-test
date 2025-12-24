@@ -79,6 +79,8 @@ public class Perf : MonoBehaviour
         float monoRam = Profiler.GetMonoUsedSizeLong();
         Debug.Log($"[Unity] Mono Used Size: {monoRam / 1048576f:F1} MB");
 
+        Debug.Log("I'm Just A Peeker!");
+
         // 作为 Memory Profiler 中的 Graphics（Estimated）
         float graphicsMemory = Profiler.GetAllocatedMemoryForGraphicsDriver();
         Debug.Log($"[Unity] Graphics Driver Allocated Memory: {graphicsMemory / 1048576f:F1} MB");
