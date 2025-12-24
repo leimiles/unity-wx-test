@@ -164,7 +164,7 @@ jobs:
           subject: '🔍 Code Review Brief - Assets/Runtime - ${{ steps.get_issue.outputs.issue_title || ''No Changes'' }}'
           to: leimiles_18@hotmail.com
           from: GitHub Actions <${{ secrets.MAIL_USERNAME }}>
-          html_body: file: ///tmp/email_brief.md
+          html_body: file:///tmp/email_brief.md
           convert_markdown: true
           ignore_cert:  true
           priority: normal
