@@ -24,7 +24,7 @@ public static class EventBus<T>
         }
     }
 
-    static void Clear()
+    public static void Clear()
     {
         //Debug.Log($"Clearing {typeof(T).Name} bindings");
         bindings.Clear();

@@ -5,6 +5,7 @@ using Cysharp.Threading.Tasks;
 using UnityEngine.Networking;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
+using System.Threading;
 
 public interface IYooService
 {
@@ -61,7 +62,8 @@ public sealed class YooService : IYooService
 
     private readonly Dictionary<AssetKey, AssetHandleInfo> activeHandles = new();
 
-    private readonly object _handlesGate = new();
+    // 将 lock 改为 SemaphoreSlim
+    private readonly SemaphoreSlim _handlesSemaphore = new SemaphoreSlim(1, 1);
 
     class AssetHandleInfo
     {
@@ -421,30 +423,32 @@ public sealed class YooService : IYooService
 
         AssetKey key = new AssetKey(address, typeof(T));
 
-        // 检查是否已存在
-        lock (_handlesGate)
+        // 使用 SemaphoreSlim 异步等待
+        await _handlesSemaphore.WaitAsync();
+        try
         {
             if (activeHandles.TryGetValue(key, out var existingHandleInfo))
             {
-                // 资源已存在，增加引用计数
                 handleInfo = existingHandleInfo;
                 handleInfo.RefCount++;
-                addedRef = true; // 标记已增加引用
+                addedRef = true;
                 Debug.Log($"[YooService] 资源已加载，引用计数: {handleInfo.RefCount}: {address}");
             }
             else
             {
-                // 创建新的句柄
                 Debug.Log($"[YooService] 开始异步加载资源: {address}");
                 var handle = currentPackage.LoadAssetAsync<T>(address);
                 handleInfo = new AssetHandleInfo(handle);
                 activeHandles[key] = handleInfo;
-                isNewHandle = true; // 标记是新创建的句柄
-                // 新建时 RefCount 初始为 1，不需要额外增加
+                isNewHandle = true;
             }
         }
+        finally
+        {
+            _handlesSemaphore.Release();
+        }
 
-        // 等待加载完成
+        // 等待加载完成（在锁外）
         await handleInfo.Handle.ToUniTask();
 
         // 检查加载结果
@@ -461,24 +465,27 @@ public sealed class YooService : IYooService
             Debug.LogError($"[YooService] 加载失败: {address} - {handleInfo.Handle.LastError}");
 
 
-            lock (_handlesGate)
+            // 回滚操作也需要在锁内
+            await _handlesSemaphore.WaitAsync();
+            try
             {
-                // 再次检查句柄是否还在字典中（可能被其他线程移除）
                 if (activeHandles.TryGetValue(key, out var info) && info == handleInfo)
                 {
                     if (addedRef)
                     {
-                        // 回滚之前增加的引用计数
                         handleInfo.RefCount--;
                         Debug.Log($"[YooService] 加载失败，回滚引用计数: {handleInfo.RefCount}: {address}");
                     }
                     else if (isNewHandle)
                     {
-                        // 新创建的句柄失败，从字典中移除
                         activeHandles.Remove(key);
                         Debug.Log($"[YooService] 新句柄加载失败，已移除: {address}");
                     }
                 }
+            }
+            finally
+            {
+                _handlesSemaphore.Release();
             }
 
             var error = handleInfo.Handle.LastError;
@@ -641,9 +648,11 @@ public sealed class YooService : IYooService
     }
 
 
+    // 同步方法可以继续使用 lock，或者也改为 SemaphoreSlim
     private bool TryReleaseInternal(in AssetKey key, out int newRefCount)
     {
-        lock (_handlesGate)
+        _handlesSemaphore.Wait(); // 同步等待
+        try
         {
             if (!activeHandles.TryGetValue(key, out var handleInfo))
             {
@@ -661,6 +670,10 @@ public sealed class YooService : IYooService
             }
 
             return true;
+        }
+        finally
+        {
+            _handlesSemaphore.Release();
         }
     }
 
@@ -712,7 +725,8 @@ public sealed class YooService : IYooService
     /// </summary>
     public void ReleaseAllAssets()
     {
-        lock (_handlesGate)
+        _handlesSemaphore.Wait();
+        try
         {
             int count = activeHandles.Count;
             foreach (var kvp in activeHandles)
@@ -721,6 +735,10 @@ public sealed class YooService : IYooService
             }
             activeHandles.Clear();
             Debug.Log($"[YooService] 已释放所有资源句柄 ({count} 个)");
+        }
+        finally
+        {
+            _handlesSemaphore.Release();
         }
     }
 
@@ -839,7 +857,12 @@ public sealed class YooService : IYooService
 
     public void Dispose()
     {
+        // 先释放所有资源（需要在 semaphore 保护下进行）
         ReleaseAllAssets();
+
+        // 释放 semaphore（在所有使用 semaphore 的操作完成后）
+        _handlesSemaphore?.Dispose();
+
         currentPackage = null;
         _isInitialized = false;
         Debug.Log("[YooService] 已释放所有资源并重置服务");
@@ -851,9 +874,14 @@ public sealed class YooService : IYooService
     /// </summary>
     public int GetActiveHandleCount()
     {
-        lock (_handlesGate)
+        _handlesSemaphore.Wait();
+        try
         {
             return activeHandles.Count;
+        }
+        finally
+        {
+            _handlesSemaphore.Release();
         }
     }
 

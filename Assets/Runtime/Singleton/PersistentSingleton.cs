@@ -8,6 +8,7 @@ namespace MilesUtils
         public bool AutoUnparentOnAwake = true;
 
         protected static T instance;
+        private static readonly object _lock = new object();
 
         public static bool HasInstance => instance != null;
 
@@ -19,11 +20,17 @@ namespace MilesUtils
             {
                 if (instance == null)
                 {
-                    instance = FindAnyObjectByType<T>();
-                    if (instance == null)
+                    lock (_lock)
                     {
-                        var go = new GameObject($"{typeof(T).Name} [Auto-Generated]");
-                        instance = go.AddComponent<T>();
+                        if (instance == null)  // 双重检查锁定模式
+                        {
+                            instance = FindAnyObjectByType<T>();
+                            if (instance == null)
+                            {
+                                var go = new GameObject($"{typeof(T).Name} [Auto-Generated]");
+                                instance = go.AddComponent<T>();
+                            }
+                        }
                     }
                 }
 

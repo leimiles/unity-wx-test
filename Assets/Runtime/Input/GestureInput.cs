@@ -119,6 +119,9 @@ public class GestureInput : MonoBehaviour
     }
 
 
-
+    void OnDestroy()
+    {
+        input?.Dispose();
+    }
 
 }

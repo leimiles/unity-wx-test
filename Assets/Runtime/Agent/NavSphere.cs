@@ -19,6 +19,7 @@ public class NavSphere : MonoBehaviour
     private NavMeshAgent agent;
     private Vector3 targetPosition;
     private bool hasTarget = false;
+    private Coroutine _waitCoroutine;  // 添加协程引用字段
 
     void Start()
     {
@@ -40,7 +41,10 @@ public class NavSphere : MonoBehaviour
             if (agent.remainingDistance < 0.5f)
             {
                 // 到达目标，等待一段时间后寻找新目标
-                StartCoroutine(WaitAndFindNewDestination());
+                if (_waitCoroutine == null)
+                {
+                    _waitCoroutine = StartCoroutine(WaitAndFindNewDestination());
+                }
                 hasTarget = false;
             }
         }
@@ -70,7 +74,10 @@ public class NavSphere : MonoBehaviour
         else
         {
             // 如果找不到有效位置，稍后重试
-            StartCoroutine(WaitAndFindNewDestination());
+            if (_waitCoroutine == null)
+            {
+                _waitCoroutine = StartCoroutine(WaitAndFindNewDestination());
+            }
         }
     }
 
@@ -81,6 +88,7 @@ public class NavSphere : MonoBehaviour
     {
         float waitTime = Random.Range(minWaitTime, maxWaitTime);
         yield return new WaitForSeconds(waitTime);
+        _waitCoroutine = null;
         FindRandomDestination();
     }
 
