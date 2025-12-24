@@ -270,7 +270,7 @@ void OnDestroy()
 ---
 
 #### 7. **NavSphere.cs** - Magic Numbers
-**File:** `Assets/Runtime/Agent/NavSphere.cs**  
+**File:** `Assets/Runtime/Agent/NavSphere.cs`  
 **Lines:** 28-29, 40, 92
 
 **Issue:**
