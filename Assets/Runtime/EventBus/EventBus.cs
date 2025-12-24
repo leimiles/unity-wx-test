@@ -1,11 +1,15 @@
 using System.Collections.Generic;
+using System.Buffers;
 using UnityEngine;
+
 
 public static class EventBus<T>
     where T : IEvent
 {
     static readonly HashSet<IEventBinding<T>> bindings = new HashSet<IEventBinding<T>>();
     static readonly object bindingsLock = new object();
+    private static readonly ArrayPool<IEventBinding<T>> _bindingPool = ArrayPool<IEventBinding<T>>.Shared;
+
 
     public static void Register(EventBinding<T> binding)
     {
@@ -25,27 +29,42 @@ public static class EventBus<T>
 
     public static void Raise(T @event)
     {
-        // 在锁内创建快照副本，确保线程安全
-        // 虽然每次创建新 List 有 GC 压力，但这是保证线程安全的最简单方式
-        List<IEventBinding<T>> snapshot;
+        IEventBinding<T>[] snapshot = null;
+        int count = 0;
+
         lock (bindingsLock)
         {
-            snapshot = new List<IEventBinding<T>>(bindings);
+            count = bindings.Count;
+            if (count == 0) return;
+
+            snapshot = _bindingPool.Rent(count);
+            bindings.CopyTo(snapshot);
         }
 
-        // 在锁外迭代快照，避免在回调执行期间持有锁
-        for (int i = 0; i < snapshot.Count; i++)
+        try
         {
-            var binding = snapshot[i];
-
-            try
+            // 在锁外迭代快照，避免在回调执行期间持有锁
+            for (int i = 0; i < count; i++)
             {
-                binding.OnEvent?.Invoke(@event);
-                binding.OnEventNoArgs?.Invoke();
+                var binding = snapshot[i];
+                try
+                {
+                    binding.OnEvent?.Invoke(@event);
+                    binding.OnEventNoArgs?.Invoke();
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogError($"[EventBus] Exception in event handler for {typeof(T).Name}: {ex.Message}");
+                }
             }
-            catch (System.Exception ex)
+        }
+        finally
+        {
+            if (snapshot != null)
             {
-                Debug.LogError($"[EventBus] Exception in event handler for {typeof(T).Name}: {ex.Message}");
+                // 清理数组内容（只清理使用的部分）
+                System.Array.Clear(snapshot, 0, count);
+                _bindingPool.Return(snapshot);
             }
         }
     }

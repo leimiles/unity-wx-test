@@ -11,20 +11,34 @@ namespace MilesUtils
 
         public static T TryGetInstance() => HasInstance ? instance : null;
 
+        private static readonly object _instanceLock = new object();
+
         public static T Instance
         {
             get
             {
                 if (instance == null)
                 {
-                    instance = FindAnyObjectByType<T>();
-                    if (instance == null)
+                    lock (_instanceLock)
                     {
-                        var go = new GameObject($"{typeof(T).Name} [Auto-Generated]");
-                        instance = go.AddComponent<T>();
+                        if (instance == null) // Double-check
+                        {
+                            // 确保在播放模式下才创建
+                            if (!Application.isPlaying)
+                            {
+                                Debug.LogWarning($"[Singleton] Attempting to access Instance '{typeof(T).Name}' when application is not playing.");
+                                return null;
+                            }
+
+                            instance = FindAnyObjectByType<T>();
+                            if (instance == null)
+                            {
+                                var go = new GameObject($"{typeof(T).Name} [Auto-Generated]");
+                                instance = go.AddComponent<T>();
+                            }
+                        }
                     }
                 }
-
                 return instance;
             }
         }
