@@ -27,11 +27,10 @@ jobs:
           echo "🔍 Analyzing changes in Assets/Runtime on develop branch..."
 
           # 获取过去 24 小时的变更
-          CHANGED_FILES=$(git log \
+          CHANGED_FILES=$(git log develop \
             --since="24 hours ago" \
             --name-only \
             --pretty=format: \
-            --branches=develop \
             -- "Assets/Runtime/" \
             | sort | uniq | grep "\.cs$" || echo "")
 
@@ -49,10 +48,9 @@ jobs:
           echo "file_count=$FILE_COUNT" >> $GITHUB_OUTPUT
 
           # 获取提交信息
-          COMMITS=$(git log \
+          COMMITS=$(git log develop \
             --since="24 hours ago" \
             --pretty=format:"- %h:  %s (by %an, %ar)" \
-            --branches=develop \
             -- "Assets/Runtime/")
 
           echo "commits<<EOF" >> $GITHUB_OUTPUT
