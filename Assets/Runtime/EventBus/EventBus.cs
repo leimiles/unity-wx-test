@@ -31,16 +31,12 @@ public static class EventBus<T>
             snapshot = new HashSet<IEventBinding<T>>(bindings);
         }
 
+        // 在快照上迭代，不需要每次都加锁
+        // 快照已经保护了并发修改问题
         foreach (var binding in snapshot)
         {
-            lock (bindingsLock)
-            {
-                if (bindings.Contains(binding))
-                {
-                    binding.OnEvent.Invoke(@event);
-                    binding.OnEventNoArgs.Invoke();
-                }
-            }
+            binding.OnEvent.Invoke(@event);
+            binding.OnEventNoArgs.Invoke();
         }
     }
 
