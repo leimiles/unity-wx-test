@@ -70,6 +70,14 @@ public class Bootstrap : MonoBehaviour
             Debug.Log("Bootstrap complete");
             //将子系统列表传递给GameManager，系统由GameManager管理
             GameManager.Instance.AttachContext(_subSystems, _services);
+            
+            // 清理 BootUI 资源
+            if (_bootUI != null)
+            {
+                Destroy(_bootUI);
+                _bootUI = null;
+            }
+            
             //自毁
             Destroy(gameObject);
         }

@@ -86,11 +86,14 @@ public class GameManager : PersistentSingleton<GameManager>
         catch (OperationCanceledException)
         {
             // 取消时，忽略
+            Debug.Log($"Flow {flow.GetType().Name} was cancelled");
         }
         catch (Exception e)
         {
             Debug.LogError($"Failed to run flow {flow.GetType().Name}: {e.Message}");
-            // 切 FlowID.Error
+            Debug.LogError($"Stack trace: {e.StackTrace}");
+            // TODO: 考虑添加错误流程处理机制
+            // 目前记录错误，防止应用崩溃
         }
     }
 

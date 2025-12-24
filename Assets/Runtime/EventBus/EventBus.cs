@@ -5,28 +5,51 @@ public static class EventBus<T>
     where T : IEvent
 {
     static readonly HashSet<IEventBinding<T>> bindings = new HashSet<IEventBinding<T>>();
+    static readonly object bindingsLock = new object();
 
-    public static void Register(EventBinding<T> binding) => bindings.Add(binding);
+    public static void Register(EventBinding<T> binding)
+    {
+        lock (bindingsLock)
+        {
+            bindings.Add(binding);
+        }
+    }
 
-    public static void Deregister(EventBinding<T> binding) => bindings.Remove(binding);
+    public static void Deregister(EventBinding<T> binding)
+    {
+        lock (bindingsLock)
+        {
+            bindings.Remove(binding);
+        }
+    }
 
     public static void Raise(T @event)
     {
-        var snapshot = new HashSet<IEventBinding<T>>(bindings);
+        HashSet<IEventBinding<T>> snapshot;
+        lock (bindingsLock)
+        {
+            snapshot = new HashSet<IEventBinding<T>>(bindings);
+        }
 
         foreach (var binding in snapshot)
         {
-            if (bindings.Contains(binding))
+            lock (bindingsLock)
             {
-                binding.OnEvent.Invoke(@event);
-                binding.OnEventNoArgs.Invoke();
+                if (bindings.Contains(binding))
+                {
+                    binding.OnEvent.Invoke(@event);
+                    binding.OnEventNoArgs.Invoke();
+                }
             }
         }
     }
 
-    static void Clear()
+    public static void Clear()
     {
-        //Debug.Log($"Clearing {typeof(T).Name} bindings");
-        bindings.Clear();
+        lock (bindingsLock)
+        {
+            //Debug.Log($"Clearing {typeof(T).Name} bindings");
+            bindings.Clear();
+        }
     }
 }
