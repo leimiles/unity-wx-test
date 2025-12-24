@@ -771,8 +771,11 @@ public class YooUtils : PersistentSingleton<YooUtils>
     }
 
 
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
+        // 先调用基类的清理逻辑（清理静态引用）
+        base.OnDestroy();
+
         // 释放所有资源句柄
         ReleaseAllAssets();
     }

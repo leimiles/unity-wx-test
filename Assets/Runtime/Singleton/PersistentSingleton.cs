@@ -9,6 +9,7 @@ namespace MilesUtils
 
         protected static T instance;
         private static readonly object _lock = new object();
+        private static bool applicationIsQuitting = false;
 
         public static bool HasInstance => instance != null;
 
@@ -18,12 +19,27 @@ namespace MilesUtils
         {
             get
             {
+                // 应用退出时不再创建新实例
+                if (applicationIsQuitting)
+                {
+                    Debug.LogWarning($"[PersistentSingleton] Instance '{typeof(T).Name}' already destroyed on application quit. Won't create again.");
+                    return null;
+                }
+
                 if (instance == null)
                 {
                     lock (_lock)
                     {
-                        if (instance == null)  // 双重检查锁定模式
+                        // 双重检查，包括退出标志
+                        if (instance == null && !applicationIsQuitting)
                         {
+                            // 检查是否在播放模式（编辑器或运行时）
+                            if (!Application.isPlaying)
+                            {
+                                Debug.LogWarning($"[PersistentSingleton] Attempting to access Instance '{typeof(T).Name}' when application is not playing.");
+                                return null;
+                            }
+
                             instance = FindAnyObjectByType<T>();
                             if (instance == null)
                             {
@@ -67,6 +83,27 @@ namespace MilesUtils
                 {
                     Destroy(gameObject);
                 }
+            }
+        }
+
+        protected virtual void OnDestroy()
+        {
+            // 清理静态引用，防止访问已销毁的对象
+            if (instance == this)
+            {
+                instance = null;
+            }
+        }
+
+        protected virtual void OnApplicationQuit()
+        {
+            // 标记应用正在退出，防止创建新实例
+            applicationIsQuitting = true;
+
+            // 清理静态引用
+            if (instance == this)
+            {
+                instance = null;
             }
         }
     }
