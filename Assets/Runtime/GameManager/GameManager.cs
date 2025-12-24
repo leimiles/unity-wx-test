@@ -16,6 +16,10 @@ public class GameManager : PersistentSingleton<GameManager>
     bool _flowSwitchHooked;
     EventBinding<RequestFlowSwitchEvent> _flowSwitchBinding;
 
+    // 添加运行状态标志和锁
+    private bool _isFlowRunning = false;
+    private readonly object _flowLock = new object();
+
     protected override void Awake()
     {
         base.Awake();
@@ -56,49 +60,89 @@ public class GameManager : PersistentSingleton<GameManager>
 
     public void RunFlow(FlowID flowID)
     {
-        if (_flowFactory == null) throw new InvalidOperationException("Flow factory not initialized.");
+        if (_flowFactory == null)
+            throw new InvalidOperationException("Flow factory not initialized.");
+
         var flow = _flowFactory.CreateFlow(flowID);
-        RunGameFlow(flow);
+
+        // 使用 Fire-and-Forget 模式，但内部有保护
+        RunGameFlowAsync(flow).Forget();
     }
 
-    void RunGameFlow(IGameFlow flow)
+    async UniTaskVoid RunGameFlowAsync(IGameFlow flow)
     {
         if (flow == null)
-        {
             throw new ArgumentNullException(nameof(flow));
+
+        CancellationTokenSource previousCts = null;
+        IGameFlow previousFlow = null;
+
+        // 检查是否已有 Flow 在运行
+        lock (_flowLock)
+        {
+            if (_isFlowRunning)
+            {
+                // 这是预期的行为（Flow 快速切换），使用 Debug 而不是 Warning
+                Debug.Log($"[GameManager] Switching flow: cancelling previous flow and starting new one: {flow.GetType().Name}");
+
+                // 保存之前的引用，以便在锁外取消
+                previousCts = _flowCts;
+                previousFlow = _currentFlow;
+            }
+
+            _flowCts = new CancellationTokenSource();
+            _currentFlow = flow;
+            _isFlowRunning = true;
         }
 
-        _flowCts?.Cancel();
-        _flowCts?.Dispose();
+        // 在锁外取消之前的 Flow（避免在锁内执行可能耗时的操作）
+        if (previousCts != null)
+        {
+            previousCts.Cancel();
+            previousCts.Dispose();
+        }
 
-        _flowCts = new CancellationTokenSource();
-        _currentFlow = flow;
-
-        RunFlowInternalAsync(_currentFlow, _flowCts.Token).Forget();
-    }
-
-    async UniTaskVoid RunFlowInternalAsync(IGameFlow flow, CancellationToken ct)
-    {
         try
         {
-            await flow.RunAsync(ct);
+            await RunFlowInternalAsync(_currentFlow, _flowCts.Token);
         }
         catch (OperationCanceledException)
         {
-            // 取消时，忽略
+            // 取消时，忽略（这是正常的 Flow 切换行为）
+            Debug.Log($"[GameManager] Flow {flow.GetType().Name} was cancelled");
         }
         catch (Exception e)
         {
-            Debug.LogError($"Failed to run flow {flow.GetType().Name}: {e.Message}");
-            // 切 FlowID.Error
+            Debug.LogError($"[GameManager] Failed to run flow {flow.GetType().Name}: {e.Message}");
+            // 可以考虑切换到错误 Flow
         }
+        finally
+        {
+            lock (_flowLock)
+            {
+                // 只有在当前 Flow 完成时才清理（避免清理新创建的）
+                if (_currentFlow == flow)
+                {
+                    _isFlowRunning = false;
+                    _currentFlow = null;
+                }
+            }
+        }
+    }
+    async UniTask RunFlowInternalAsync(IGameFlow flow, CancellationToken ct)
+    {
+        await flow.RunAsync(ct);
     }
 
     void OnDestroy()
     {
-        _flowCts?.Cancel();
-        _flowCts?.Dispose();
-        _flowCts = null;
+        lock (_flowLock)
+        {
+            _flowCts?.Cancel();
+            _flowCts?.Dispose();
+            _flowCts = null;
+            _isFlowRunning = false;
+        }
 
         if (_flowSwitchHooked)
         {
