@@ -1,0 +1,170 @@
+name: Morning Email Brief - Code Review
+
+on:
+  schedule: 
+    # 北京时间早上 10:00 = UTC 02:00
+    - cron:  '0 2 * * *'
+  workflow_dispatch:  # 允许手动测试
+
+jobs:
+  send-review-brief:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: read
+      actions: read
+    
+    steps:
+      - name:  Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+      
+      - name: Get yesterday's review issue
+        id: get_issue
+        env:
+          GH_TOKEN:  ${{ github.token }}
+        run: |
+          BEIJING_TODAY=$(TZ='Asia/Shanghai' date +%Y-%m-%d)
+          BEIJING_YESTERDAY=$(TZ='Asia/Shanghai' date -d '1 day ago' +%Y-%m-%d)
+          
+          echo "Looking for review issue created on:  $BEIJING_TODAY or $BEIJING_YESTERDAY"
+          
+          # 查找最近的 nightly review issue
+          ISSUE_DATA=$(gh issue list \
+            --label "nightly" \
+            --label "runtime" \
+            --limit 1 \
+            --state all \
+            --json number,title,url,body,createdAt,comments \
+            --jq '.[0]')
+          
+          if [ -z "$ISSUE_DATA" ] || [ "$ISSUE_DATA" = "null" ]; then
+            echo "No review issue found"
+            echo "has_issue=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          ISSUE_NUMBER=$(echo "$ISSUE_DATA" | jq -r '.number')
+          ISSUE_TITLE=$(echo "$ISSUE_DATA" | jq -r '.title')
+          ISSUE_URL=$(echo "$ISSUE_DATA" | jq -r '. url')
+          
+          echo "issue_number=$ISSUE_NUMBER" >> $GITHUB_OUTPUT
+          echo "issue_title=$ISSUE_TITLE" >> $GITHUB_OUTPUT
+          echo "issue_url=$ISSUE_URL" >> $GITHUB_OUTPUT
+          echo "has_issue=true" >> $GITHUB_OUTPUT
+          
+          # 获取 Issue 的评论（Copilot 的审查结果）
+          gh issue view "$ISSUE_NUMBER" --json comments --jq '.comments[] | "**" + .author. login + "** commented:\n\n" + .body' > /tmp/issue_comments.md || echo "No comments yet" > /tmp/issue_comments.md
+
+      - name: Generate email brief
+        if: steps.get_issue.outputs.has_issue == 'true'
+        run:  |
+          BEIJING_TIME=$(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M:%S')
+          ISSUE_NUMBER="${{ steps.get_issue.outputs.issue_number }}"
+          ISSUE_TITLE="${{ steps.get_issue.outputs.issue_title }}"
+          ISSUE_URL="${{ steps.get_issue.outputs.issue_url }}"
+          
+          cat << EOF > /tmp/email_brief. md
+          # 📧 Daily Code Review Brief
+          
+          **Generated:** $BEIJING_TIME (Beijing Time)  
+          **Repository:** leimiles/unity-wx-test  
+          **Branch:** develop  
+          **Scope:** Assets/Runtime/
+          
+          ---
+          
+          ## 📋 Review Summary
+          
+          **Issue:** [$ISSUE_TITLE]($ISSUE_URL)
+          
+          ### 🤖 Copilot Review Results
+          
+          EOF
+          
+          # 添加 Copilot 的评论
+          if [ -s /tmp/issue_comments.md ]; then
+            cat /tmp/issue_comments.md >> /tmp/email_brief. md
+          else
+            echo "⏳ Copilot is still analyzing the code.  Please check the issue for updates." >> /tmp/email_brief.md
+          fi
+          
+          cat << EOF >> /tmp/email_brief. md
+          
+          ---
+          
+          ## 🔗 Quick Links
+          
+          - [View Full Review on GitHub]($ISSUE_URL)
+          - [View develop Branch](https://github.com/leimiles/unity-wx-test/tree/develop)
+          - [View Assets/Runtime](https://github.com/leimiles/unity-wx-test/tree/develop/Assets/Runtime)
+          
+          ---
+          
+          ## 📊 Next Steps
+          
+          1. Review Copilot's suggestions in the GitHub Issue
+          2. Address high-priority issues first
+          3. Create follow-up tasks if needed
+          4. Close the review issue once addressed
+          
+          ---
+          
+          *This is an automated email sent by GitHub Actions*  
+          *To modify email preferences, edit . github/workflows/morning-email-brief.yml*
+          EOF
+          
+          # 显示邮件内容用于调试
+          echo "Email content:"
+          cat /tmp/email_brief.md
+
+      - name: Generate no-review email
+        if: steps.get_issue.outputs.has_issue == 'false'
+        run: |
+          BEIJING_TIME=$(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M:%S')
+          
+          cat << EOF > /tmp/email_brief.md
+          # 📧 Daily Code Review Brief
+          
+          **Generated:** $BEIJING_TIME (Beijing Time)  
+          **Repository:** leimiles/unity-wx-test  
+          **Branch:** develop  
+          **Scope:** Assets/Runtime/
+          
+          ---
+          
+          ## ✅ No Review Available
+          
+          No code review was conducted last night, likely because:
+          - No changes were detected in Assets/Runtime/
+          - The nightly review workflow did not run
+          
+          ---
+          
+          ## 🔗 Quick Links
+          
+          - [View Repository](https://github.com/leimiles/unity-wx-test)
+          - [View Workflow Runs](https://github.com/leimiles/unity-wx-test/actions)
+          
+          ---
+          
+          *This is an automated email sent by GitHub Actions*
+          EOF
+
+      - name: Send email
+        if: always()
+        uses: dawidd6/action-send-mail@v3
+        with: 
+          server_address: smtp-mail.outlook.com
+          server_port: 587
+          secure: false
+          username: ${{ secrets. MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: '🔍 Code Review Brief - Assets/Runtime - ${{ steps.get_issue.outputs.issue_title || ''No Changes'' }}'
+          to: leimiles_18@hotmail.com
+          from: GitHub Actions <${{ secrets.MAIL_USERNAME }}>
+          html_body: file: ///tmp/email_brief.md
+          convert_markdown: true
+          ignore_cert:  true
+          priority: normal
