@@ -13,19 +13,19 @@ jobs:
       contents: read
       issues: write
       pull-requests: read
-    
+
     steps:
       - name:  Checkout develop branch
         uses: actions/checkout@v4
         with:
           ref:  develop
           fetch-depth: 0
-      
+
       - name: Get today's changes in Assets/Runtime
         id: get_changes
         run:  |
           echo "🔍 Analyzing changes in Assets/Runtime on develop branch..."
-          
+
           # 获取过去 24 小时的变更
           CHANGED_FILES=$(git log \
             --since="24 hours ago" \
@@ -34,27 +34,35 @@ jobs:
             --branches=develop \
             -- "Assets/Runtime/" \
             | sort | uniq | grep "\.cs$" || echo "")
-          
+
           echo "$CHANGED_FILES" > /tmp/changed_files.txt
-          FILE_COUNT=$(echo "$CHANGED_FILES" | grep -c "\.cs$" || echo "0")
-          
+          # 计算文件数量，使用 wc -l 更可靠
+          if [ -z "$CHANGED_FILES" ]; then
+            FILE_COUNT=0
+          else
+            # 使用 wc -l 计算行数（每个文件一行），更可靠
+            FILE_COUNT=$(echo "$CHANGED_FILES" | grep "\.cs$" | wc -l | tr -d '[:space:]')
+          fi
+          # 确保 FILE_COUNT 是纯数字，如果为空则设置为 0
+          FILE_COUNT=${FILE_COUNT:-0}
+
           echo "file_count=$FILE_COUNT" >> $GITHUB_OUTPUT
-          
+
           # 获取提交信息
           COMMITS=$(git log \
             --since="24 hours ago" \
             --pretty=format:"- %h:  %s (by %an, %ar)" \
             --branches=develop \
             -- "Assets/Runtime/")
-          
+
           echo "commits<<EOF" >> $GITHUB_OUTPUT
           echo "$COMMITS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
-          
+
           # 生成文件变更详情
           echo "## Changed Files in Assets/Runtime" > /tmp/file_changes.md
-          echo "" >> /tmp/file_changes. md
-          
+          echo "" >> /tmp/file_changes.md
+
           if [ "$FILE_COUNT" -gt "0" ]; then
             echo "Found $FILE_COUNT changed C# files:" >> /tmp/file_changes.md
             echo "" >> /tmp/file_changes.md
@@ -70,26 +78,26 @@ jobs:
         if: steps.get_changes.outputs.file_count != '0'
         run: |
           echo "📄 Extracting code snippets..."
-          
+
           echo "## Code Changes Details" > /tmp/code_snippets.md
           echo "" >> /tmp/code_snippets.md
-          
+
           # 对每个变更的文件，获取最近的 diff
           while IFS= read -r file; do
             if [ -z "$file" ]; then
               continue
             fi
-            
+
             echo "### 📁 \`$file\`" >> /tmp/code_snippets.md
             echo "" >> /tmp/code_snippets.md
-            
+
             # 获取最近一次修改此文件的 commit
             LAST_COMMIT=$(git log -1 --since="24 hours ago" --pretty=format:"%h" -- "$file")
-            
+
             if [ -n "$LAST_COMMIT" ]; then
               COMMIT_MSG=$(git log -1 --pretty=format:"%s" "$LAST_COMMIT")
               COMMIT_AUTHOR=$(git log -1 --pretty=format:"%an" "$LAST_COMMIT")
-              
+
               echo "**Commit:** \`$LAST_COMMIT\` - $COMMIT_MSG (by $COMMIT_AUTHOR)" >> /tmp/code_snippets.md
               echo "" >> /tmp/code_snippets.md
               echo "<details>" >> /tmp/code_snippets.md
@@ -107,27 +115,27 @@ jobs:
         id: stats
         run: |
           echo "📊 Generating code statistics..."
-          
+
           echo "## Assets/Runtime Statistics" > /tmp/stats.md
           echo "" >> /tmp/stats.md
-          
+
           # 统计总的 C# 文件数
           TOTAL_CS_FILES=$(find Assets/Runtime -name "*.cs" 2>/dev/null | wc -l)
           echo "- Total C# files in Assets/Runtime: **$TOTAL_CS_FILES**" >> /tmp/stats.md
-          
+
           # 统计总行数
           TOTAL_LINES=$(find Assets/Runtime -name "*.cs" -exec cat {} \; 2>/dev/null | wc -l)
           echo "- Total lines of code:  **$TOTAL_LINES**" >> /tmp/stats.md
           echo "" >> /tmp/stats.md
-          
+
           # 按模块统计（只显示有变更的模块）
           if [ -s /tmp/changed_files.txt ]; then
-            echo "### Changed Modules" >> /tmp/stats. md
+            echo "### Changed Modules" >> /tmp/stats.md
             echo "" >> /tmp/stats.md
-            
+
             # 提取模块名
             MODULES=$(cat /tmp/changed_files.txt | sed 's|Assets/Runtime/||' | cut -d'/' -f1 | sort | uniq)
-            
+
             for module in $MODULES; do
               if [ -d "Assets/Runtime/$module" ]; then
                 file_count=$(find "Assets/Runtime/$module" -name "*.cs" 2>/dev/null | wc -l)
@@ -140,111 +148,111 @@ jobs:
       - name: Create review issue with Copilot mention
         if: steps.get_changes.outputs.file_count != '0'
         env:
-          GH_TOKEN: ${{ github. token }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           TODAY=$(date -u +%Y-%m-%d)
           BEIJING_DATE=$(TZ='Asia/Shanghai' date +%Y-%m-%d)
-          
+
           # 构建 Issue 内容
           cat << 'EOF' > /tmp/issue_body.md
           # 🤖 Nightly Code Review - Assets/Runtime
-          
+
           **Review Date:** BEIJING_DATE_PLACEHOLDER (Beijing Time)
           **Branch:** `develop`
           **Scope:** `Assets/Runtime/`
           **Analysis Time:** 02:00 Beijing Time
-          
+
           ---
-          
+
           EOF
-          
+
           # 添加提交信息
           echo "## 📝 Commits in Last 24 Hours" >> /tmp/issue_body.md
           echo "" >> /tmp/issue_body.md
-          if [ -n "${{ steps.get_changes.outputs. commits }}" ]; then
+          if [ -n "${{ steps.get_changes.outputs.commits }}" ]; then
             echo "${{ steps.get_changes.outputs.commits }}" >> /tmp/issue_body.md
           else
-            echo "No commits found" >> /tmp/issue_body. md
+            echo "No commits found" >> /tmp/issue_body.md
           fi
           echo "" >> /tmp/issue_body.md
           echo "---" >> /tmp/issue_body.md
           echo "" >> /tmp/issue_body.md
-          
+
           # 添加文件变更
           cat /tmp/file_changes.md >> /tmp/issue_body.md
           echo "" >> /tmp/issue_body.md
           echo "---" >> /tmp/issue_body.md
           echo "" >> /tmp/issue_body.md
-          
+
           # 添加代码片段
-          if [ -f /tmp/code_snippets. md ]; then
-            cat /tmp/code_snippets.md >> /tmp/issue_body. md
+          if [ -f /tmp/code_snippets.md ]; then
+            cat /tmp/code_snippets.md >> /tmp/issue_body.md
             echo "" >> /tmp/issue_body.md
             echo "---" >> /tmp/issue_body.md
             echo "" >> /tmp/issue_body.md
           fi
-          
+
           # 添加统计信息
           cat /tmp/stats.md >> /tmp/issue_body.md
           echo "" >> /tmp/issue_body.md
           echo "---" >> /tmp/issue_body.md
           echo "" >> /tmp/issue_body.md
-          
+
           # Copilot 审查请求
           cat << 'COPILOT_EOF' >> /tmp/issue_body.md
           ## 🔍 Copilot Review Request
-          
+
           @copilot 请帮我审查上述 Assets/Runtime 目录下今天的代码变更，重点关注：
-          
+
           ### 审查维度
-          
+
           1. **代码质量**
              - 是否遵循 C# 和 Unity 最佳实践？
              - 命名规范是否统一？
              - 代码结构是否清晰？
-          
+
           2. **潜在 Bug**
              - 是否存在逻辑错误？
              - 是否有空引用风险？
              - 是否存在内存泄漏可能？
              - Unity 生命周期使用是否正确？
-          
+
           3. **性能问题**
              - Update/FixedUpdate 中是否有重复计算？
              - 是否存在不必要的 GC 分配？
              - 是否有频繁的 GetComponent 调用？
              - 字符串拼接是否优化？
-          
+
           4. **架构设计**
              - 模块之间的耦合度是否合理？
              - 单一职责原则是否遵守？
              - 依赖关系是否清晰？
-          
+
           5. **安全性**
              - 是否存在安全漏洞？
              - 输入验证是否充分？
-          
+
           6. **可维护性**
              - 代码是否易于理解？
              - 是否有充分的注释？
              - 是否便于后续扩展？
-          
+
           ### 输出格式
-          
+
           请针对每个变更的文件提供：
           - ✅ 做得好的地方
           - ⚠️ 需要注意的问题
           - 💡 具体的改进建议（附代码示例）
           - 🎯 优先级评估（高/中/低）
-          
+
           ---
-          
+
           *📧 本次审查结果的摘要将在早上 10:00 通过邮件发送*
           COPILOT_EOF
-          
+
           # 替换日期变量
           sed -i "s/BEIJING_DATE_PLACEHOLDER/$BEIJING_DATE/g" /tmp/issue_body.md
-          
+
           # 创建 Issue
           gh issue create \
             --title "🔍 Nightly Review:  Assets/Runtime - $BEIJING_DATE" \
@@ -255,32 +263,32 @@ jobs:
       - name: Create no-changes summary
         if: steps.get_changes.outputs.file_count == '0'
         env:
-          GH_TOKEN:  ${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           BEIJING_DATE=$(TZ='Asia/Shanghai' date +%Y-%m-%d)
-          
-          cat << EOF > /tmp/no_changes. md
+
+          cat << EOF > /tmp/no_changes.md
           # ✅ Nightly Review Summary - Assets/Runtime
-          
+
           **Review Date:** $BEIJING_DATE (Beijing Time)
           **Branch:** \`develop\`
           **Scope:** \`Assets/Runtime/\`
-          
+
           ---
-          
+
           ## No Changes Detected
-          
-          No C# files were modified in Assets/Runtime/ directory in the last 24 hours. 
-          
+
+          No C# files were modified in Assets/Runtime/ directory in the last 24 hours.
+
           ---
-          
+
           EOF
-          
+
           cat /tmp/stats.md >> /tmp/no_changes.md
-          
+
           gh issue create \
             --title "✅ Nightly Summary: Assets/Runtime - $BEIJING_DATE (No Changes)" \
-            --body-file /tmp/no_changes. md \
+            --body-file /tmp/no_changes.md \
             --label "code-review,automated,runtime,no-changes"
 
       - name: Save review data for morning email
