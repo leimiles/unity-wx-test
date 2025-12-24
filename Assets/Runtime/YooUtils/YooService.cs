@@ -252,10 +252,10 @@ public sealed class YooService : IYooService
                     break;
 #if UNITY_WEBGL && WEIXINMINIGAME
                 case EPlayMode.CustomPlayMode:
-                    packageRoot = $"{WeChatWASM.WX.env.USER_DATA_PATH}/_GAME_FILE_CACHE/yoo";
+                    packageRoot = $"{WeChatWASM.WX.env.USER_DATA_PATH}/__GAME_FILE_CACHE";
                     var createParametersCustom = new WebPlayModeParameters
                     {
-                        WebServerFileSystemParameters = WechatFileSystemCreater.CreateFileSystemParameters(packageRoot, remoteServices, null)
+                        WebServerFileSystemParameters = WechatFileSystemCreater.CreateFileSystemParameters(packageRoot, remoteServices)
                     };
                     initOperation = currentPackage.InitializeAsync(createParametersCustom);
                     break;
