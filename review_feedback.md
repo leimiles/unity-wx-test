@@ -53,39 +53,53 @@
 
 ### 🔴 高优先级问题
 
-#### 1. **NavSphere.cs - 潜在的空引用和逻辑错误**
+#### 1. **NavSphere.cs - 配置参数验证缺失**
 
-**位置：** `Assets/Runtime/Agent/NavSphere.cs` 第 26、41 行
+**位置：** `Assets/Runtime/Agent/NavSphere.cs` 第 24-33 行
 
 **问题：**
 ```csharp
 void Start()
 {
-    agent = GetComponent<NavMeshAgent>();  // 没有检查是否为 null
-    // ...
-}
+    agent = GetComponent<NavMeshAgent>();
 
-void Update()
-{
-    if (hasTarget && !agent.pathPending)  // agent 可能为 null
-    {
-        if (agent.remainingDistance < 0.5f)
+    // 设置 NavMeshAgent 属性，适合球的移动
+    agent.acceleration = 8f;
+    agent.angularSpeed = 180f;
+
+    // 寻找第一个随机目标
+    FindRandomDestination();
+}
 ```
 
-**风险：** 如果 GameObject 上没有 NavMeshAgent 组件（虽然有 RequireComponent 特性，但在某些情况下可能失效），会导致空引用异常。
+**风险：** 虽然 `[RequireComponent(typeof(NavMeshAgent))]` 特性保证了组件存在，但 Start 方法没有验证序列化字段的配置是否合理（如 minWaitTime、maxWaitTime、searchRadius）。
 
 **改进建议：**
 ```csharp
 void Start()
 {
     agent = GetComponent<NavMeshAgent>();
-    if (agent == null)
+    
+    // 验证配置参数
+    if (minWaitTime < 0 || maxWaitTime < minWaitTime)
     {
-        Debug.LogError($"[NavSphere] NavMeshAgent component not found on {gameObject.name}");
-        enabled = false;
-        return;
+        Debug.LogWarning($"[NavSphere] Invalid wait time configuration on {gameObject.name}. Using defaults.");
+        minWaitTime = 1f;
+        maxWaitTime = 3f;
     }
-    // ...
+    
+    if (searchRadius <= 0)
+    {
+        Debug.LogWarning($"[NavSphere] Invalid search radius on {gameObject.name}. Using default.");
+        searchRadius = 10f;
+    }
+    
+    // 设置 NavMeshAgent 属性，适合球的移动
+    agent.acceleration = 8f;
+    agent.angularSpeed = 180f;
+
+    // 寻找第一个随机目标
+    FindRandomDestination();
 }
 ```
 
@@ -148,33 +162,7 @@ void OnDestroy()
 
 ### 🟡 中优先级问题
 
-#### 4. **EventBus.cs - ArrayPool 使用可能的内存浪费**
-
-**位置：** `Assets/Runtime/EventBus/EventBus.cs` 第 40 行
-
-**问题：**
-```csharp
-snapshot = _bindingPool.Rent(count);
-```
-
-**风险：** `ArrayPool.Rent` 可能返回比 `count` 更大的数组，但代码只使用了 `count` 大小。虽然有 `Array.Clear` 清理，但如果后续其他代码使用这个数组时没有注意到实际大小，可能导致问题。
-
-**改进建议：** 当前实现已经很好了，只需确保所有使用该数组的地方都使用 `count` 而不是 `snapshot.Length`（已经正确实现）。
-
-#### 5. **GameManager.cs - Fire-and-Forget 可能的异常丢失**
-
-**位置：** `Assets/Runtime/GameManager/GameManager.cs` 第 68 行
-
-**问题：**
-```csharp
-RunGameFlowAsync(flow).Forget();
-```
-
-**风险：** 使用 `.Forget()` 后，如果异常没有在 `RunGameFlowAsync` 内部完全捕获，可能导致异常被静默吞掉。
-
-**改进建议：** 当前代码已经在 `RunGameFlowAsync` 中有完整的 try-catch，这是正确的做法。建议保持现状，但可以考虑添加全局未捕获异常处理器。
-
-#### 6. **ModularCharSpawner.cs - 功能不完整**
+#### 4. **ModularCharSpawner.cs - 功能不完整**
 
 **位置：** `Assets/Runtime/ModularsCharacter/ModularCharSpawner.cs`
 
@@ -243,21 +231,15 @@ private const float MIN_VELOCITY_THRESHOLD = 0.1f;
 
 ## 💡 具体改进建议
 
-### 建议 1: 加强 NavSphere 的健壮性
+### 建议 1: 加强 NavSphere 的配置验证
 
 ```csharp
 // Assets/Runtime/Agent/NavSphere.cs
 void Start()
 {
     agent = GetComponent<NavMeshAgent>();
-    if (agent == null)
-    {
-        Debug.LogError($"[NavSphere] NavMeshAgent not found on {gameObject.name}. Disabling component.");
-        enabled = false;
-        return;
-    }
 
-    // 验证配置
+    // 验证配置参数
     if (minWaitTime < 0 || maxWaitTime < minWaitTime)
     {
         Debug.LogWarning($"[NavSphere] Invalid wait time configuration on {gameObject.name}. Using defaults.");
@@ -404,15 +386,15 @@ public class ModularCharSpawner : Singleton<ModularCharSpawner>
 
 | 优先级 | 问题数量 | 描述 |
 |--------|----------|------|
-| 🔴 高 | 3 | 潜在的空引用、资源泄漏、代码清理 |
-| 🟡 中 | 4 | 性能优化、功能完整性 |
+| 🔴 高 | 3 | 资源泄漏、代码清理、未使用方法 |
+| 🟡 中 | 2 | 功能完整性、代码规范 |
 | 🟢 低 | 3 | 代码规范、可维护性改进 |
 
 ---
 
 ## 📋 行动项清单
 
-- [ ] **立即处理**：修复 NavSphere.cs 中潜在的空引用问题
+- [ ] **立即处理**：加强 NavSphere.cs 的配置参数验证
 - [ ] **立即处理**：清理 Singleton.cs 中未使用的 `InitializeSingleton0` 方法
 - [ ] **立即处理**：完善 Bootstrap.cs 的资源清理逻辑
 - [ ] **短期处理**：为 ModularCharSpawner 添加 TODO 注释或实现完整功能
@@ -435,7 +417,7 @@ public class ModularCharSpawner : Singleton<ModularCharSpawner>
 
 但也存在一些需要改进的地方：
 
-⚠️ 少数地方存在潜在的空引用风险  
+⚠️ 少数地方存在资源清理和代码规范问题  
 ⚠️ 部分功能实现不完整（如 ModularCharSpawner）  
 ⚠️ 有一些遗留代码需要清理  
 
