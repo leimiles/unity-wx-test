@@ -2,6 +2,7 @@ using UnityEngine;
 using Cysharp.Threading.Tasks;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 [DisallowMultipleComponent]
 public class Bootstrap : MonoBehaviour
@@ -9,6 +10,8 @@ public class Bootstrap : MonoBehaviour
     [SerializeField] int frameRate = 60;
     [SerializeField] bool runInBackground = true;
     [SerializeField] BootstrapConfigs bootstrapConfigs;
+    [SerializeField] float requiredSystemTimeout = 60f;  // Required 系统超时时间（秒）
+    [SerializeField] float optionalSystemTimeout = 30f; // Optional 系统超时时间（秒）
     float _bootStartTime;
     EventBinding<BootstrapCompleteEvent> _bootCompleteBinding;
     readonly List<ISubSystem> _subSystems = new();
@@ -210,9 +213,17 @@ public class Bootstrap : MonoBehaviour
 
             var subSystemProgress = new BootProgressMapper(progress, subSystem.Name, processed, total).Create();
 
+            var timeoutSeconds = subSystem.IsRequired ? requiredSystemTimeout : optionalSystemTimeout;
+            CancellationTokenSource timeoutCts = null;
+
             try
             {
-                await subSystem.InitializeAsync(subSystemProgress);
+                // 添加超时保护（可配置的超时时间）
+                // 创建超时 CancellationTokenSource
+                timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
+
+                await subSystem.InitializeAsync(subSystemProgress)
+                    .AttachExternalCancellation(timeoutCts.Token);
 
                 isSuccess = subSystem.IsInitialized;
                 if (!isSuccess)
@@ -220,7 +231,6 @@ public class Bootstrap : MonoBehaviour
                     errorMessage = $"SubSystem {subSystem.Name} initialization failed";
                     if (subSystem.IsRequired)
                     {
-                        // Required：中断启动流程
                         throw new Exception(errorMessage);
                     }
                 }
@@ -228,6 +238,20 @@ public class Bootstrap : MonoBehaviour
                 {
                     Debug.Log($"SubSystem {subSystem.Name} initialization completed");
                 }
+            }
+            catch (OperationCanceledException) when (timeoutCts?.IsCancellationRequested == true)
+            {
+                // 超时异常
+                errorMessage = $"SubSystem {subSystem.Name} initialization timeout ({timeoutSeconds}s)";
+                Debug.LogError(errorMessage);
+
+                isSuccess = false;
+
+                if (subSystem.IsRequired)
+                {
+                    throw new TimeoutException(errorMessage);
+                }
+                // Optional 系统超时，继续执行
             }
             catch (Exception e)
             {
@@ -249,6 +273,8 @@ public class Bootstrap : MonoBehaviour
             }
             finally
             {
+                // 确保 CancellationTokenSource 被释放
+                timeoutCts?.Dispose();
                 EventBus<SubSystemInitializationCompleteEvent>.Raise(
                     new SubSystemInitializationCompleteEvent
                     {
