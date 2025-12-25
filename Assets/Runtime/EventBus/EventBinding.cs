@@ -59,9 +59,4 @@ public class EventBinding<T> : IEventBinding<T>, IDisposable
             throw new ObjectDisposedException(nameof(EventBinding<T>));
         }
     }
-
-    ~EventBinding()
-    {
-        Dispose();
-    }
 }

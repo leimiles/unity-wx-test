@@ -87,7 +87,7 @@ public class GameWorldService : IGameWorldService
 
         var go = gos[0];
 
-        if (!go.TryGetComponent<IGameWorld>(out var world) || world == null)
+        if (!go.TryGetComponent<IGameWorld>(out var world))
             throw new InvalidOperationException(
                 $"[GameWorldService] GameObject '{go.name}' has tag '{GameWorldTag}' but does not implement IGameWorld.");
 
