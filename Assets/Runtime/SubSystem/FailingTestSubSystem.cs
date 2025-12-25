@@ -7,8 +7,18 @@ public class FailingTestSubSystem : ISubSystem
     public string Name => "FailingTestSystem";
     public int Priority => 3;
     public bool IsRequired => false; // Optional
-    public bool IsInitialized => false;
-
+    public bool IsReady => false;
+    public bool IsInstalled => _installed;
+    bool _installed = false;
+    public void Install(IGameServices services)
+    {
+        if (_installed) return;
+        if (services == null)
+        {
+            throw new ArgumentNullException(nameof(services));
+        }
+        _installed = true;
+    }
     public async UniTask InitializeAsync(IProgress<float> progress)
     {
         await UniTask.Delay(500);

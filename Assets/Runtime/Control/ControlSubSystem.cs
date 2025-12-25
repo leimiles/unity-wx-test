@@ -8,8 +8,19 @@ public class ControlSubSystem : ISubSystem
     public string Name => "ControlSubSystem";
     public int Priority => 5;
     public bool IsRequired => true;
-    public bool IsInitialized => _isInitialized;
+    public bool IsReady => _isInitialized;
     bool _isInitialized;
+    public bool IsInstalled => _installed;
+    bool _installed = false;
+    public void Install(IGameServices services)
+    {
+        if (_installed) return;
+        if (services == null)
+        {
+            throw new ArgumentNullException(nameof(services));
+        }
+        _installed = true;
+    }
     public UniTask InitializeAsync(IProgress<float> progress)
     {
         _isInitialized = true;

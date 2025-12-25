@@ -14,15 +14,21 @@ public interface IGameSceneService
     UniTask UnloadSceneAsync(SceneHandle sceneHandle);
     // 场景切换（自动管理资源）
     UniTask SwitchSceneAsync(string newSceneName, string[] assetAddresses = null);
+    void Dispose();
 }
 
-public class GameSceneService : IGameSceneService
+public sealed class GameSceneService : IGameSceneService, IDisposable
 {
     private readonly IYooService _yooService;
     private volatile bool _isInitialized;
 
     // 记录场景使用的资源（用于自动释放）
-    private readonly Dictionary<SceneHandle, HashSet<string>> _sceneAssets = new();
+    Dictionary<string, SceneRuntimeContext> _scenes;
+    class SceneRuntimeContext
+    {
+        public SceneHandle Handle;
+        public HashSet<string> Assets;
+    }
 
     // 当前场景句柄（用于场景切换）
     private SceneHandle _currentSceneHandle;
@@ -37,6 +43,8 @@ public class GameSceneService : IGameSceneService
     public UniTask InitializeAsync(IProgress<float> progress)
     {
         // 场景服务初始化（如果需要）
+        _scenes = new Dictionary<string, SceneRuntimeContext>(StringComparer.Ordinal);
+
         _isInitialized = true;
         progress?.Report(1.0f);
         return UniTask.CompletedTask;
@@ -71,7 +79,11 @@ public class GameSceneService : IGameSceneService
         // 4. 记录场景使用的资源
         if (assetAddresses != null && assetAddresses.Length > 0)
         {
-            _sceneAssets[sceneHandle] = new HashSet<string>(assetAddresses);
+            _scenes[sceneName] = new SceneRuntimeContext
+            {
+                Handle = sceneHandle,
+                Assets = new HashSet<string>(assetAddresses)
+            };
         }
 
         // 5. 保存当前场景句柄
@@ -93,14 +105,14 @@ public class GameSceneService : IGameSceneService
         }
 
         // 1. 释放场景使用的资源
-        if (_sceneAssets.TryGetValue(sceneHandle, out var assets))
+        if (_scenes.TryGetValue(sceneHandle.SceneName, out var context))
         {
-            Debug.Log($"[GameSceneService] 释放场景资源，数量: {assets.Count}");
-            foreach (var address in assets)
+            Debug.Log($"[GameSceneService] 释放场景资源，数量: {context.Assets.Count}");
+            foreach (var address in context.Assets)
             {
                 _yooService.ReleaseAsset<GameObject>(address);
             }
-            _sceneAssets.Remove(sceneHandle);
+            _scenes.Remove(sceneHandle.SceneName);
         }
 
         // 2. 卸载场景
@@ -141,5 +153,13 @@ public class GameSceneService : IGameSceneService
         await LoadSceneAsync(newSceneName, assetAddresses, LoadSceneMode.Single);
 
         Debug.Log($"[GameSceneService] 场景切换完成: {newSceneName}");
+    }
+
+    public void Dispose()
+    {
+        _scenes.Clear();
+        // yooService 已经由 YooService.Dispose 了，这里不需要再 Dispose
+        _currentSceneHandle = null;
+        _isInitialized = false;
     }
 }

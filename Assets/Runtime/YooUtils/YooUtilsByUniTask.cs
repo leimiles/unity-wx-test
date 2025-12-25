@@ -20,10 +20,12 @@ public class YooUtilsByUniTask : ISubSystem
     /// <summary>
     /// 是否初始化完成
     /// </summary>
-    public bool IsInitialized => isInitialized;
+    public bool IsReady => isReady;
     readonly YooSettings settings;
-    bool isInitialized = false;
+    bool isReady = false;
     ResourcePackage currentPackage;
+    public bool IsInstalled => _installed;
+    bool _installed = false;
     //public event Action OnInitialized;
     //public event Action<string> OnInitializeFailed;
     UniTask? _initTask;
@@ -42,10 +44,19 @@ public class YooUtilsByUniTask : ISubSystem
     {
         settings = yooSettings;
     }
+    public void Install(IGameServices services)
+    {
+        if (_installed) return;
+        if (services == null)
+        {
+            throw new ArgumentNullException(nameof(services));
+        }
+        _installed = true;
+    }
 
     public UniTask InitializeAsync(IProgress<float> progress)
     {
-        if (isInitialized)
+        if (isReady)
         {
             progress?.Report(1.0f);
             return UniTask.CompletedTask;
@@ -214,7 +225,7 @@ public class YooUtilsByUniTask : ISubSystem
             Debug.Log("Default package set successfully");
             progress?.Report(0.9f);
 
-            isInitialized = true;
+            isReady = true;
             progress?.Report(1.0f);
             Debug.Log("=== YooAsset initialization completed ===");
             //OnInitialized?.Invoke();
@@ -227,7 +238,7 @@ public class YooUtilsByUniTask : ISubSystem
         }
         finally
         {
-            if (!isInitialized)
+            if (!isReady)
             {
                 // 初始化失败，允许重试
                 _initTask = null;
@@ -347,7 +358,7 @@ public class YooUtilsByUniTask : ISubSystem
     {
         ReleaseAllAssets();
         currentPackage = null;
-        isInitialized = false;
+        isReady = false;
         Debug.Log("[YooUtilsByUniTask] 已释放所有资源并重置服务");
     }
 

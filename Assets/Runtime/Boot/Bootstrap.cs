@@ -52,9 +52,9 @@ public class Bootstrap : MonoBehaviour
             var gameManager = GameManager.Instance; // 确保 GameManager 已经初始化
             StartBootSequence(bootstrapConfigs).Forget();
         }
-        catch (System.Exception e)
+        catch (Exception e)
         {
-            Debug.LogError($"Bootstrap Start failed: {e}");
+            Debug.LogError($"Bootstrap Start failed: {e.Message}");
             EventBus<BootstrapCompleteEvent>.Raise(
                 new BootstrapCompleteEvent
                 {
@@ -151,22 +151,20 @@ public class Bootstrap : MonoBehaviour
     void CreateSubSystems(BootstrapConfigs bootstrapConfigs)
     {
         // 创建 YooSubSystem
-        var yooService = new YooService(bootstrapConfigs.yooSettings);
-        _services.Register<IYooService>(yooService);
-        var yooSubSystem = new YooSubSystem(yooService);
+        var yooSubSystem = new YooSubSystem(bootstrapConfigs);
         RegisterSubSystem(yooSubSystem);
 
-        // 创建 GameSceneSubSystem
-        var gameSceneService = new GameSceneService(yooService);
-        var gameSceneSubSystem = new GameSceneSubSystem(gameSceneService);
-        _services.Register<IGameSceneService>(gameSceneService);
+        //创建 GameSceneSubSystem
+        var gameSceneSubSystem = new GameSceneSubSystem(bootstrapConfigs, _services);
         RegisterSubSystem(gameSceneSubSystem);
 
         // 创建 GameWorldSubSystem
-        var gameWorldService = new GameWorldService();
-        var gameWorldSubSystem = new GameWorldSubSystem(gameWorldService);
-        _services.Register<IGameWorldService>(gameWorldService);
+        var gameWorldSubSystem = new GameWorldSubSystem();
         RegisterSubSystem(gameWorldSubSystem);
+
+        // 创建 CameraSubSystem
+        var cameraSubSystem = new CameraSubSystem();
+        RegisterSubSystem(cameraSubSystem);
 
         // ------------------------------------------------------------
         // 可以继续添加其他子系统
@@ -225,7 +223,7 @@ public class Bootstrap : MonoBehaviour
                 await subSystem.InitializeAsync(subSystemProgress)
                     .AttachExternalCancellation(timeoutCts.Token);
 
-                isSuccess = subSystem.IsInitialized;
+                isSuccess = subSystem.IsReady;
                 if (!isSuccess)
                 {
                     errorMessage = $"SubSystem {subSystem.Name} initialization failed";
@@ -237,6 +235,8 @@ public class Bootstrap : MonoBehaviour
                 else
                 {
                     Debug.Log($"SubSystem {subSystem.Name} initialization completed");
+                    //安装子系统
+                    subSystem.Install(_services);
                 }
             }
             catch (OperationCanceledException) when (timeoutCts?.IsCancellationRequested == true)

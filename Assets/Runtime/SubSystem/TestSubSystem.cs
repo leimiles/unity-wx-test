@@ -10,8 +10,18 @@ public class TestSubSystem : ISubSystem
     public string Name => "TestSystem";
     public int Priority => 2; // 优先级比 YooUtils 低，会在后面初始化
     public bool IsRequired => false; // 设为非必需，测试 Optional 系统
-    public bool IsInitialized { get; private set; }
-
+    public bool IsReady { get; private set; }
+    public bool IsInstalled => _installed;
+    bool _installed = false;
+    public void Install(IGameServices services)
+    {
+        if (_installed) return;
+        if (services == null)
+        {
+            throw new ArgumentNullException(nameof(services));
+        }
+        _installed = true;
+    }
     public async UniTask InitializeAsync(IProgress<float> progress)
     {
         Debug.Log($"[TestSubSystem] 开始初始化...");
@@ -24,7 +34,7 @@ public class TestSubSystem : ISubSystem
             Debug.Log($"[TestSubSystem] 初始化进度: {i * 10}%");
         }
 
-        IsInitialized = true;
+        IsReady = true;
         Debug.Log($"[TestSubSystem] 初始化完成！");
     }
     public void Dispose()

@@ -6,19 +6,34 @@ using Cysharp.Threading.Tasks;
 
 public class GameWorldSubSystem : ISubSystem
 {
-    readonly IGameWorldService _gameWorldService;
     public string Name => "GameWorldSubSystem";
     public int Priority => 3;
     public bool IsRequired => true;
-    public bool IsInitialized => _isInitialized;
+    public bool IsReady => _isInitialized;
     bool _isInitialized;
-    public GameWorldSubSystem(IGameWorldService gameWorldService)
+    public bool IsInstalled => _installed;
+    bool _installed = false;
+    IGameWorldService _gameWorldService;
+    public void Install(IGameServices services)
     {
-        _gameWorldService = gameWorldService ?? throw new ArgumentNullException(nameof(gameWorldService));
+        if (_installed) return;
+        if (services == null)
+        {
+            throw new ArgumentNullException(nameof(services));
+        }
+        if (_gameWorldService == null)
+        {
+            throw new InvalidOperationException(
+                "GameWorldService is not initialized before Install"
+            );
+        }
+        services.Register<IGameWorldService>(_gameWorldService);
+        _installed = true;
     }
     public UniTask InitializeAsync(IProgress<float> progress)
     {
         // 不需要初始化，直接设置为已初始化
+        _gameWorldService = new GameWorldService();
         _isInitialized = true;
         progress?.Report(1.0f);
         return UniTask.CompletedTask;

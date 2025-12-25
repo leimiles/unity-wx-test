@@ -6,16 +6,42 @@ public class YooSubSystem : ISubSystem
     public string Name => "YooSubSystem";
     public int Priority => 1;
     public bool IsRequired => true;
-    public bool IsInitialized => _yooService.IsInitialized;
-    readonly IYooService _yooService;
-    // anotherServices such as YooService2, YooService3, etc.
-    public YooSubSystem(IYooService yooService)
+    public bool IsReady => _yooService != null && _yooService.IsInitialized;
+    IYooService _yooService;
+    readonly YooSettings _yooSettings;
+    public bool IsInstalled => _installed;
+    bool _installed = false;
+
+    public YooSubSystem(BootstrapConfigs configs)
     {
-        _yooService = yooService ?? throw new ArgumentNullException(nameof(yooService));
+        if (configs == null)
+        {
+            throw new ArgumentNullException(nameof(configs));
+        }
+        if (configs.yooSettings == null)
+        {
+            throw new ArgumentNullException(nameof(configs.yooSettings));
+        }
+        _yooSettings = configs.yooSettings;
     }
+
+    public void Install(IGameServices services)
+    {
+        if (_installed) return;
+
+        if (services == null)
+            throw new ArgumentNullException(nameof(services));
+        if (_yooService == null)
+            throw new InvalidOperationException("YooService not initialized");
+
+        services.Register<IYooService>(_yooService);
+        _installed = true;
+    }
+
 
     public UniTask InitializeAsync(IProgress<float> progress)
     {
+        _yooService = new YooService(_yooSettings);
         return _yooService.InitializeAsync(progress);
     }
 

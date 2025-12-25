@@ -1,7 +1,7 @@
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "BootstrapConfigs", menuName = "WX/Configs/BootstrapConfigs", order = 0)]
-public class BootstrapConfigs : IConfigs
+public class BootstrapConfigs : ScriptableObject
 {
     [Header("子系统配置")]
     [Tooltip("YooUtils 资源系统配置")]
