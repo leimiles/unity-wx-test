@@ -30,8 +30,34 @@ public class GameWorldService : IGameWorldService
 
     void OnGameWorldEnter(GameWorldEnterEvent e)
     {
-        SetCurrentWorld();
-        Debug.Log("[GameWorldService] enter game world");
+        try
+        {
+            SetCurrentWorld();
+
+            // 验证设置是否成功
+            if (_currentWorld == null)
+            {
+                throw new InvalidOperationException("SetCurrentWorld completed but _currentWorld is still null");
+            }
+
+            Debug.Log($"[GameWorldService] enter game world: {e.gameWorldName} -> {_currentWorld.Name}");
+        }
+        catch (InvalidOperationException ex)
+        {
+            Debug.LogError($"[GameWorldService] Failed to set current world for '{e.gameWorldName}': {ex.Message}");
+
+            // 确保状态一致
+            _currentWorld = null;
+
+            // 可以考虑触发错误恢复流程
+            // 例如：重新加载场景、显示错误提示等
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"[GameWorldService] Unexpected error in OnGameWorldEnter for '{e.gameWorldName}': {ex.Message}");
+            Debug.LogException(ex);
+            _currentWorld = null;
+        }
     }
 
     /// <summary>
@@ -72,7 +98,7 @@ public class GameWorldService : IGameWorldService
 
     public void Dispose()
     {
-        EventBus<GameWorldEnterEvent>.Deregister(_gameWorldEnterBinding);
+        _gameWorldEnterBinding?.Dispose();
         _gameWorldEnterBinding = null;
     }
 }

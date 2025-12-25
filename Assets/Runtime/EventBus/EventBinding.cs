@@ -6,9 +6,10 @@ public interface IEventBinding<T>
     public Action OnEventNoArgs { get; set; }
 }
 
-public class EventBinding<T> : IEventBinding<T>
+public class EventBinding<T> : IEventBinding<T>, IDisposable
     where T : IEvent
 {
+    bool _disposed = false;
     Action<T> onEvent = _ => { };
     Action onEventNoArgs = () => { };
 
@@ -35,4 +36,32 @@ public class EventBinding<T> : IEventBinding<T>
     public void Add(Action<T> onEvent) => this.onEvent += onEvent;
 
     public void Remove(Action<T> onEvent) => this.onEvent -= onEvent;
+
+    public void Dispose()
+    {
+        if (!_disposed)
+        {
+            // 先注销，再清理委托引用
+            EventBus<T>.Deregister(this);
+
+            // 清理委托引用
+            onEvent = null;
+            onEventNoArgs = null;
+
+            _disposed = true;
+        }
+    }
+
+    private void ThrowIfDisposed()
+    {
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(nameof(EventBinding<T>));
+        }
+    }
+
+    ~EventBinding()
+    {
+        Dispose();
+    }
 }
