@@ -9,8 +9,7 @@ public class GameWorldSubSystem : ISubSystem
     public string Name => "GameWorldSubSystem";
     public int Priority => 3;
     public bool IsRequired => true;
-    public bool IsReady => _isInitialized;
-    bool _isInitialized;
+    public bool IsReady => _gameWorldService != null;   // 不能以是否 has world 来判断，因为 has world 需要等待 GameWorldEnterEvent 事件触发
     public bool IsInstalled => _installed;
     bool _installed = false;
     IGameWorldService _gameWorldService;
@@ -34,7 +33,6 @@ public class GameWorldSubSystem : ISubSystem
     {
         // 不需要初始化，直接设置为已初始化
         _gameWorldService = new GameWorldService();
-        _isInitialized = true;
         progress?.Report(1.0f);
         return UniTask.CompletedTask;
     }
