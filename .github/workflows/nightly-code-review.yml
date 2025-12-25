@@ -15,13 +15,13 @@ jobs:
       pull-requests: read
 
     steps:
-      - name:  Checkout develop branch
+      - name: Checkout develop branch
         uses: actions/checkout@v4
         with:
-          ref:  develop
+          ref: develop
           fetch-depth: 0
 
-      - name: Get today's changes in Assets/Runtime
+      - name: Get changes in last 24 hours in Assets/Runtime
         id: get_changes
         run:  |
           echo "🔍 Analyzing changes in Assets/Runtime on develop branch..."
@@ -37,13 +37,13 @@ jobs:
           echo "$CHANGED_FILES" > /tmp/changed_files.txt
           echo "Detected C# files changed in last 24h (Assets/Runtime):"
           echo "$CHANGED_FILES"
-          echo "FILE_COUNT=$FILE_COUNT"
           # 计算文件数量，使用 wc -l 更可靠
           if [ -z "$CHANGED_FILES" ]; then
             FILE_COUNT=0
           else
             # 使用 wc -l 计算行数（每个文件一行），更可靠
-            FILE_COUNT=$(echo "$CHANGED_FILES" | grep "\.cs$" | wc -l | tr -d '[:space:]')
+            # CHANGED_FILES 已经过滤过 .cs 文件，直接计算行数即可
+            FILE_COUNT=$(echo "$CHANGED_FILES" | wc -l | tr -d '[:space:]')
           fi
           # 确保 FILE_COUNT 是纯数字，如果为空则设置为 0
           FILE_COUNT=${FILE_COUNT:-0}
@@ -151,8 +151,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          TODAY=$(date -u +%Y-%m-%d)
           BEIJING_DATE=$(TZ='Asia/Shanghai' date +%Y-%m-%d)
+
+          # 获取提交信息到 shell 变量
+          COMMITS_OUTPUT="${{ steps.get_changes.outputs.commits }}"
 
           # 构建 Issue 内容
           cat << 'EOF' > /tmp/issue_body.md
@@ -170,8 +172,8 @@ jobs:
           # 添加提交信息
           echo "## 📝 Commits in Last 24 Hours" >> /tmp/issue_body.md
           echo "" >> /tmp/issue_body.md
-          if [ -n "${{ steps.get_changes.outputs.commits }}" ]; then
-            echo "${{ steps.get_changes.outputs.commits }}" >> /tmp/issue_body.md
+          if [ -n "$COMMITS_OUTPUT" ]; then
+            echo "$COMMITS_OUTPUT" >> /tmp/issue_body.md
           else
             echo "No commits found" >> /tmp/issue_body.md
           fi
@@ -206,10 +208,10 @@ jobs:
           **语言要求：请全程使用中文输出（技术名词可保留英文）。**
 
           **范围要求（非常重要）：**
-          - 只审查本 Issue 中 “/tmp/file_changes.md” 列表里的文件；
+          - 只审查本 Issue 中 "Changed Files in Assets/Runtime" 部分列出的文件；
           - 只基于本 Issue 中提供的 diff 片段与提交摘要；
 
-          @copilot 请帮我审查上述 /tmp/file_changes.md 列表里的文件，重点关注：
+          @copilot 请帮我审查上述文件变更列表中的文件，重点关注：
 
           ### 审查维度（只关注本次有变动更新的代码文件即可）
 
@@ -244,7 +246,7 @@ jobs:
              - 是否有充分的注释？
              - 是否便于后续扩展？
 
-          ### 输出格式(写入 review_feedBack.md 文件中)
+          ### 输出格式
 
           请针对本次变更的文件提供：
           - ✅ 做得好的地方
@@ -254,7 +256,13 @@ jobs:
 
           ---
 
-          *📧 本次审查结果请用中文提交到一份名为 review_feedBack.md 的文件中*
+          **📧 输出要求：**
+
+          请将审查结果用中文写入一份名为 `review_feedback.md` 的文件中，并通过 Pull Request 提交到仓库。建议：
+          1. 创建一个新的分支 (如 `review/YYYY-MM-DD-nightly-review`)
+          2. 在仓库根目录或 `Assets/Runtime/` 目录下创建 `review_feedBack.md` 文件
+          3. 将审查结果写入该文件
+          4. 提交 PR 并关联本 Issue
           COPILOT_EOF
 
           # 替换日期变量
