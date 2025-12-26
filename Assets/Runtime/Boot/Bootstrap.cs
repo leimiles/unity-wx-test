@@ -166,6 +166,10 @@ public class Bootstrap : MonoBehaviour
         var cameraSubSystem = new CameraSubSystem();
         RegisterSubSystem(cameraSubSystem);
 
+        // 创建 ControlSubSystem
+        var controlSubSystem = new ControlSubSystem(_services);
+        RegisterSubSystem(controlSubSystem);
+
         // ------------------------------------------------------------
         // 可以继续添加其他子系统
         // var testSubSystem = new TestSubSystem();

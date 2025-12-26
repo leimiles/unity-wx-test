@@ -7,24 +7,32 @@ public interface ICameraService
 {
     Camera MainCamera { get; }
     bool HasMainCamera { get; }
+    Transform CameraRoot { get; }
 }
 
 public class CameraService : ICameraService
 {
     public Camera MainCamera => _mainCamera;
-    Camera _mainCamera;
     public bool HasMainCamera => _mainCamera != null;
-    public CameraService()
+    public Transform CameraRoot => _cameraRoot;
+    readonly Camera _mainCamera;
+    readonly Transform _cameraRoot;
+    public CameraService(Camera mainCamera)
     {
-        InitializeMainCamera();
+        _mainCamera = mainCamera != null ? mainCamera : throw new InvalidOperationException("Main camera not found");
+        _cameraRoot = new GameObject("[CameraServiceRoot]").transform;
+        GameObject.DontDestroyOnLoad(_cameraRoot);
+        InitializeHierarchy();
     }
 
-    void InitializeMainCamera()
+    void InitializeHierarchy()
     {
-        _mainCamera = Camera.main;
-        if (_mainCamera == null)
-        {
-            throw new InvalidOperationException("Main camera not found");
-        }
+        ResetCamera(_mainCamera);
+        _mainCamera.transform.SetParent(_cameraRoot, false);
+    }
+
+    void ResetCamera(Camera camera)
+    {
+        camera.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
     }
 }

@@ -31,8 +31,10 @@ public class CameraSubSystem : ISubSystem
 
     public UniTask InitializeAsync(IProgress<float> progress)
     {
-        _cameraService = new CameraService();
-        GameObject.DontDestroyOnLoad(_cameraService.MainCamera);
+        var mainCamera = Camera.main;
+        if (mainCamera == null)
+            throw new InvalidOperationException("Main camera not found in boot scene");
+        _cameraService = new CameraService(mainCamera);
         progress?.Report(1.0f);
         return UniTask.CompletedTask;
     }
