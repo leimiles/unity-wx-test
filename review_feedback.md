@@ -45,7 +45,7 @@
 ### 🔴 高优先级问题
 
 #### 1. **Bootstrap.cs - 资源泄漏风险**
-**位置：** `Assets/Runtime/Boot/Bootstrap.cs:350`
+**位置：** `Assets/Runtime/Boot/Bootstrap.cs:342-352` (方法 `ShowBootUI()`)
 
 **问题：**
 ```csharp
@@ -279,8 +279,8 @@ catch (Exception e)
 
 ---
 
-#### 5. **GameManager.cs - 静态标志未重置**
-**位置：** `Assets/Runtime/Singleton/PersistentSingleton.cs:12`
+#### 5. **PersistentSingleton.cs - 静态标志未重置**
+**位置：** `Assets/Runtime/Singleton/PersistentSingleton.cs:12` (静态字段 `applicationIsQuitting`)
 
 **问题：**
 ```csharp
