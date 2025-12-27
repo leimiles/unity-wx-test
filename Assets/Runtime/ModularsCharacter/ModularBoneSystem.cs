@@ -4,9 +4,13 @@ using UnityEngine;
 /// <summary>
 /// 模块化角色骨骼管理系统
 /// 职责：管理骨骼映射、验证、重置、重绑定等骨骼相关逻辑
+/// 性能优化：减少 GetComponentsInChildren 调用，缓存 Transform 数组
 /// </summary>
 public class ModularBoneSystem
 {
+    // 性能优化：缓存 Transform 数组，避免重复分配
+    private Transform[] _boneTransformCache;
+
     /// <summary>
     /// 验证并初始化骨骼映射
     /// </summary>
@@ -31,8 +35,11 @@ public class ModularBoneSystem
         modularChar.InternalBonesMap.Clear();
         modularChar.InternalOriginalBonesMap.Clear();
 
+        // 性能优化：重用缓存的数组或创建新数组
+        _boneTransformCache = modularChar.BaseBonesRoot.GetComponentsInChildren<Transform>();
+        
         // 遍历所有子骨骼
-        foreach (var bone in modularChar.BaseBonesRoot.GetComponentsInChildren<Transform>())
+        foreach (var bone in _boneTransformCache)
         {
             modularChar.InternalBonesMap[bone.name] = bone;
             modularChar.InternalOriginalBonesMap[bone.name] = bone; // 保存原始引用

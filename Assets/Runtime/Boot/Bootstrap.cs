@@ -4,6 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 
+/// <summary>
+/// Bootstrap 引导系统
+/// 性能优化说明：
+/// 1. 使用 HashSet 进行子系统名称查找，避免 List.Exists 的线性遍历
+/// 2. 子系统初始化采用异步模式，支持超时控制
+/// 3. 进度报告采用阈值过滤，减少事件触发频率
+/// </summary>
 [DisallowMultipleComponent]
 public class Bootstrap : MonoBehaviour
 {
@@ -15,6 +22,7 @@ public class Bootstrap : MonoBehaviour
     float _bootStartTime;
     EventBinding<BootstrapCompleteEvent> _bootCompleteBinding;
     readonly List<ISubSystem> _subSystems = new();
+    readonly HashSet<string> _subSystemNames = new(); // 性能优化：用于快速查找子系统名称
     IGameServices _services;
     GameObject _bootUI;
     const string kBootUIPath = "UI/Canvas_Boot";
@@ -315,7 +323,8 @@ public class Bootstrap : MonoBehaviour
             return;
         }
 
-        if (_subSystems.Exists(s => s.Name == name))
+        // 性能优化：使用 HashSet 进行 O(1) 查找，避免 List.Exists 的 O(n) 遍历
+        if (!_subSystemNames.Add(name))
         {
             Debug.LogError($"SubSystem '{name}' already registered");
             return;

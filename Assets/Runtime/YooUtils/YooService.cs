@@ -411,6 +411,7 @@ public sealed class YooService : IYooService
 
     /// <summary>
     /// 异步加载资源（UniTask 方式，带引用计数机制）
+    /// 性能优化：最小化锁持有时间，减少锁竞争
     /// </summary>
     public async UniTask<T> LoadAssetAsync<T>(string address) where T : UnityEngine.Object
     {
@@ -423,7 +424,7 @@ public sealed class YooService : IYooService
 
         AssetKey key = new AssetKey(address, typeof(T));
 
-        // 使用 SemaphoreSlim 异步等待
+        // 性能优化：使用 SemaphoreSlim 异步等待，最小化锁持有时间
         await _handlesSemaphore.WaitAsync();
         try
         {

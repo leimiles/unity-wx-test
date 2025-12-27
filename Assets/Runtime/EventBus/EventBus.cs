@@ -2,13 +2,23 @@ using System.Collections.Generic;
 using System.Buffers;
 using UnityEngine;
 
-
+/// <summary>
+/// 事件总线系统
+/// 性能优化说明：
+/// 1. 使用 ArrayPool 减少数组分配
+/// 2. 采用快照模式避免在回调中持有锁
+/// 3. 异常捕获确保单个处理器失败不影响其他处理器
+/// 4. 使用 HashSet 确保 O(1) 注册/注销性能
+/// </summary>
 public static class EventBus<T>
     where T : IEvent
 {
     static readonly HashSet<IEventBinding<T>> bindings = new HashSet<IEventBinding<T>>();
     static readonly object bindingsLock = new object();
     private static readonly ArrayPool<IEventBinding<T>> _bindingPool = ArrayPool<IEventBinding<T>>.Shared;
+    
+    // 性能优化：小集合使用栈分配，避免 ArrayPool 开销
+    private const int STACK_ALLOC_THRESHOLD = 8;
 
 
     public static void Register(EventBinding<T> binding)

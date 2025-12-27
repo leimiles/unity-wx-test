@@ -20,6 +20,10 @@ public static class PredefinedAssemblyUtil
         AssemblyCSharpFirstPass,
     }
 
+    // 性能优化：缓存程序集类型字典，避免每次都重新构建
+    private static Dictionary<AssemblyType, Type[]> _cachedAssemblyTypes;
+    private static readonly object _cacheLock = new object();
+
     /// <summary>
     /// Maps the assembly name to the corresponding AssemblyType.
     /// </summary>
@@ -63,15 +67,46 @@ public static class PredefinedAssemblyUtil
 
     /// <summary>
     /// Gets all Types from all assemblies in the current AppDomain that implement the provided interface type.
+    /// 性能优化：缓存程序集类型，避免重复反射扫描
     /// </summary>
     /// <param name="interfaceType">Interface type to get all the Types for.</param>
     /// <returns>List of Types implementing the provided interface type.</returns>
     public static List<Type> GetTypes(Type interfaceType)
     {
-        Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+        // 初始化缓存（如果需要）
+        if (_cachedAssemblyTypes == null)
+        {
+            lock (_cacheLock)
+            {
+                if (_cachedAssemblyTypes == null)
+                {
+                    _cachedAssemblyTypes = BuildAssemblyTypeCache();
+                }
+            }
+        }
 
-        Dictionary<AssemblyType, Type[]> assemblyTypes = new Dictionary<AssemblyType, Type[]>();
         List<Type> types = new List<Type>();
+
+        _cachedAssemblyTypes.TryGetValue(AssemblyType.AssemblyCSharp, out var assemblyCSharpTypes);
+        AddTypesFromAssembly(assemblyCSharpTypes, interfaceType, types);
+
+        _cachedAssemblyTypes.TryGetValue(
+            AssemblyType.AssemblyCSharpFirstPass,
+            out var assemblyCSharpFirstPassTypes
+        );
+        AddTypesFromAssembly(assemblyCSharpFirstPassTypes, interfaceType, types);
+
+        return types;
+    }
+
+    /// <summary>
+    /// 构建程序集类型缓存字典
+    /// </summary>
+    private static Dictionary<AssemblyType, Type[]> BuildAssemblyTypeCache()
+    {
+        Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+        Dictionary<AssemblyType, Type[]> assemblyTypes = new Dictionary<AssemblyType, Type[]>();
+
         for (int i = 0; i < assemblies.Length; i++)
         {
             AssemblyType? assemblyType = GetAssemblyType(assemblies[i].GetName().Name);
@@ -81,15 +116,6 @@ public static class PredefinedAssemblyUtil
             }
         }
 
-        assemblyTypes.TryGetValue(AssemblyType.AssemblyCSharp, out var assemblyCSharpTypes);
-        AddTypesFromAssembly(assemblyCSharpTypes, interfaceType, types);
-
-        assemblyTypes.TryGetValue(
-            AssemblyType.AssemblyCSharpFirstPass,
-            out var assemblyCSharpFirstPassTypes
-        );
-        AddTypesFromAssembly(assemblyCSharpFirstPassTypes, interfaceType, types);
-
-        return types;
+        return assemblyTypes;
     }
 }

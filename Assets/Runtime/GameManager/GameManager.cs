@@ -5,6 +5,13 @@ using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 
+/// <summary>
+/// 游戏管理器
+/// 性能优化说明：
+/// 1. 使用锁保护 Flow 切换，避免竞态条件
+/// 2. Flow 切换时先取消旧 Flow，避免资源泄漏
+/// 3. 采用 Fire-and-Forget 模式处理异步 Flow，但内部有状态保护
+/// </summary>
 public class GameManager : PersistentSingleton<GameManager>
 {
     bool _attached;
