@@ -14,7 +14,8 @@ The optimizations focus on reducing allocations, minimizing lock contention, cac
 
 **Solution**: 
 - Added `HashSet<string> _subSystemNames` for O(1) duplicate detection
-- Replaced `_subSystems.Exists(s => s.Name == name)` with `_subSystemNames.Add(name)`
+- Replaced `_subSystems.Exists(s => s.Name == name)` with `!_subSystemNames.Add(name)`
+  - Note: `HashSet.Add()` returns `false` when item already exists, so `!Add()` detects duplicates
 - Added conditional compilation `BOOTSTRAP_DETAILED_LOGGING` to control verbose logging
 
 **Impact**: 
@@ -29,14 +30,14 @@ The optimizations focus on reducing allocations, minimizing lock contention, cac
 **Issue**: `AppDomain.CurrentDomain.GetAssemblies()` and `assembly.GetTypes()` were called on every `GetTypes()` invocation, causing expensive reflection operations.
 
 **Solution**:
-- Added static cache `_cachedAssemblyTypes` with thread-safe initialization
+- Added static cache using `Lazy<Dictionary<AssemblyType, Type[]>>` for thread-safe initialization
 - Implemented `BuildAssemblyTypeCache()` for one-time reflection scanning
-- Used double-check locking pattern for thread safety
+- Using `Lazy<T>` provides cleaner and more efficient thread-safety than double-check locking
 
 **Impact**:
 - Reflection only happens once during initialization
 - Subsequent calls are pure dictionary lookups
-- Thread-safe for concurrent access
+- Thread-safe for concurrent access with minimal overhead
 
 **Code Location**: `Assets/Runtime/EventBus/PredefinedAssemblyUtil.cs`
 

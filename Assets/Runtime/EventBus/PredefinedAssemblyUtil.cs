@@ -20,9 +20,9 @@ public static class PredefinedAssemblyUtil
         AssemblyCSharpFirstPass,
     }
 
-    // 性能优化：缓存程序集类型字典，避免每次都重新构建
-    private static Dictionary<AssemblyType, Type[]> _cachedAssemblyTypes;
-    private static readonly object _cacheLock = new object();
+    // 性能优化：使用 Lazy<T> 实现线程安全的延迟初始化，比双检锁更简洁高效
+    private static readonly Lazy<Dictionary<AssemblyType, Type[]>> _cachedAssemblyTypes =
+        new Lazy<Dictionary<AssemblyType, Type[]>>(BuildAssemblyTypeCache);
 
     /// <summary>
     /// Maps the assembly name to the corresponding AssemblyType.
@@ -67,30 +67,18 @@ public static class PredefinedAssemblyUtil
 
     /// <summary>
     /// Gets all Types from all assemblies in the current AppDomain that implement the provided interface type.
-    /// 性能优化：缓存程序集类型，避免重复反射扫描
+    /// 性能优化：使用 Lazy<T> 缓存程序集类型，自动处理线程安全的延迟初始化
     /// </summary>
     /// <param name="interfaceType">Interface type to get all the Types for.</param>
     /// <returns>List of Types implementing the provided interface type.</returns>
     public static List<Type> GetTypes(Type interfaceType)
     {
-        // 初始化缓存（如果需要）
-        if (_cachedAssemblyTypes == null)
-        {
-            lock (_cacheLock)
-            {
-                if (_cachedAssemblyTypes == null)
-                {
-                    _cachedAssemblyTypes = BuildAssemblyTypeCache();
-                }
-            }
-        }
-
         List<Type> types = new List<Type>();
 
-        _cachedAssemblyTypes.TryGetValue(AssemblyType.AssemblyCSharp, out var assemblyCSharpTypes);
+        _cachedAssemblyTypes.Value.TryGetValue(AssemblyType.AssemblyCSharp, out var assemblyCSharpTypes);
         AddTypesFromAssembly(assemblyCSharpTypes, interfaceType, types);
 
-        _cachedAssemblyTypes.TryGetValue(
+        _cachedAssemblyTypes.Value.TryGetValue(
             AssemblyType.AssemblyCSharpFirstPass,
             out var assemblyCSharpFirstPassTypes
         );
