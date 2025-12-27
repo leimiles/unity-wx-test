@@ -4,12 +4,16 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 
+// 性能优化：定义条件编译符号，在 Release 构建时可以禁用详细日志
+#define BOOTSTRAP_DETAILED_LOGGING
+
 /// <summary>
 /// Bootstrap 引导系统
 /// 性能优化说明：
 /// 1. 使用 HashSet 进行子系统名称查找，避免 List.Exists 的线性遍历
 /// 2. 子系统初始化采用异步模式，支持超时控制
 /// 3. 进度报告采用阈值过滤，减少事件触发频率
+/// 4. 使用条件编译控制详细日志，减少字符串分配（可通过移除 BOOTSTRAP_DETAILED_LOGGING 禁用）
 /// </summary>
 [DisallowMultipleComponent]
 public class Bootstrap : MonoBehaviour
@@ -93,7 +97,9 @@ public class Bootstrap : MonoBehaviour
     async UniTask StartBootSequence(BootstrapConfigs bootstrapConfigs)
     {
         _bootStartTime = Time.realtimeSinceStartup;
+#if BOOTSTRAP_DETAILED_LOGGING
         Debug.Log($"Boot start at {_bootStartTime}");
+#endif
 
         try
         {
@@ -115,7 +121,9 @@ public class Bootstrap : MonoBehaviour
                     }
                 );
 
+#if BOOTSTRAP_DETAILED_LOGGING
                 Debug.Log($"boot progress: {p * 100:F1}%");
+#endif
             });
 
             await InitializeSubSystems(progress);
@@ -182,7 +190,9 @@ public class Bootstrap : MonoBehaviour
         // var failingTestSubSystem = new FailingTestSubSystem();
         // RegisterSubSystem(failingTestSubSystem);
 
+#if BOOTSTRAP_DETAILED_LOGGING
         Debug.Log($"SubSystems created: {_subSystems.Count}");
+#endif
     }
 
     async UniTask InitializeSubSystems(IProgress<float> progress)
@@ -198,7 +208,9 @@ public class Bootstrap : MonoBehaviour
         int processed = 0; // 处理过的系统数（成功/失败都算）
         int succeeded = 0; // 成功数（仅用于日志/统计）
 
+#if BOOTSTRAP_DETAILED_LOGGING
         Debug.Log($"InitializeSubSystems start, total {total} subSystems");
+#endif
 
         // 只在初始化前排序一次（你原来就有）
         _subSystems.Sort((a, b) => a.Priority.CompareTo(b.Priority));
@@ -212,7 +224,9 @@ public class Bootstrap : MonoBehaviour
                     priority = subSystem.Priority
                 });
 
+#if BOOTSTRAP_DETAILED_LOGGING
             Debug.Log($"SubSystem {subSystem.Name} initialization started");
+#endif
 
             string errorMessage = null;
             bool isSuccess = false;
@@ -242,7 +256,9 @@ public class Bootstrap : MonoBehaviour
                 }
                 else
                 {
+#if BOOTSTRAP_DETAILED_LOGGING
                     Debug.Log($"SubSystem {subSystem.Name} initialization completed");
+#endif
                     //安装子系统
                     subSystem.Install(_services);
                 }
@@ -305,7 +321,9 @@ public class Bootstrap : MonoBehaviour
 
         // 保底收口：无论 Optional 成功与否，只要流程跑完，进度都到 1.0
         progress?.Report(1.0f);
+#if BOOTSTRAP_DETAILED_LOGGING
         Debug.Log($"InitializeSubSystems completed: {succeeded} / {total} subSystems initialized");
+#endif
     }
 
     void RegisterSubSystem(ISubSystem subSystem)
@@ -332,7 +350,9 @@ public class Bootstrap : MonoBehaviour
 
         _subSystems.Add(subSystem);
 
+#if BOOTSTRAP_DETAILED_LOGGING
         Debug.Log($"SubSystem '{name}' registered (Priority={subSystem.Priority}, Required={subSystem.IsRequired})");
+#endif
 
     }
 

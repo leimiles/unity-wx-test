@@ -7,6 +7,9 @@ using System.Collections.Generic;
 using UnityEngine.SceneManagement;
 using System.Threading;
 
+// 性能优化：定义条件编译符号，在 Release 构建时可以禁用详细日志
+#define YOOSERVICE_DETAILED_LOGGING
+
 public interface IYooService
 {
     bool IsInitialized { get; }
@@ -433,11 +436,15 @@ public sealed class YooService : IYooService
                 handleInfo = existingHandleInfo;
                 handleInfo.RefCount++;
                 addedRef = true;
+#if YOOSERVICE_DETAILED_LOGGING
                 Debug.Log($"[YooService] 资源已加载，引用计数: {handleInfo.RefCount}: {address}");
+#endif
             }
             else
             {
+#if YOOSERVICE_DETAILED_LOGGING
                 Debug.Log($"[YooService] 开始异步加载资源: {address}");
+#endif
                 var handle = currentPackage.LoadAssetAsync<T>(address);
                 handleInfo = new AssetHandleInfo(handle);
                 activeHandles[key] = handleInfo;
@@ -475,12 +482,16 @@ public sealed class YooService : IYooService
                     if (addedRef)
                     {
                         handleInfo.RefCount--;
+#if YOOSERVICE_DETAILED_LOGGING
                         Debug.Log($"[YooService] 加载失败，回滚引用计数: {handleInfo.RefCount}: {address}");
+#endif
                     }
                     else if (isNewHandle)
                     {
                         activeHandles.Remove(key);
+#if YOOSERVICE_DETAILED_LOGGING
                         Debug.Log($"[YooService] 新句柄加载失败，已移除: {address}");
+#endif
                     }
                 }
             }
@@ -638,14 +649,18 @@ public sealed class YooService : IYooService
 
         if (!TryReleaseInternal(key, out var refCount))
         {
+#if YOOSERVICE_DETAILED_LOGGING
             Debug.LogWarning($"[YooService] ReleaseAsset failed (not loaded): {address} ({typeof(T).Name})");
+#endif
             return;
         }
 
+#if YOOSERVICE_DETAILED_LOGGING
         if (refCount <= 0)
             Debug.Log($"[YooService] 已释放资源: {address}");
         else
             Debug.Log($"[YooService] 资源引用计数减少: {refCount}: {address}");
+#endif
     }
 
 
