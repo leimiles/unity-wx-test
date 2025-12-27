@@ -14,20 +14,15 @@ public class JustEntryCameraControlRig : ICameraControlRig
     readonly Transform _cameraRoot;
     public bool IsAttached => _isAttached;
     bool _isAttached = false;
-    public JustEntryCameraControlRig(Transform cameraRoot)
+    public JustEntryCameraControlRig(ICameraService cameraService)
     {
-        _cameraRoot = cameraRoot ?? throw new ArgumentNullException(nameof(cameraRoot));
-    }
-    public void Attach()
-    {
+        Debug.Log($"[JustEntryCameraControlRig] new instance: {cameraService.CameraRoot}");
+        var cameraRoot = cameraService.CameraRoot;
+        if (cameraRoot == null)
+        {
+            throw new ArgumentNullException(nameof(cameraRoot));
+        }
+        _cameraRoot = cameraRoot;
         _isAttached = true;
-    }
-    public void Detach()
-    {
-        _isAttached = false;
-    }
-    public void Reset()
-    {
-        _isAttached = false;
     }
 }

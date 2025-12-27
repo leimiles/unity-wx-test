@@ -20,16 +20,20 @@ public class TestSceneFlow : IGameFlow
         // 切流
         //EventBus<RequestFlowSwitchEvent>.Raise(new RequestFlowSwitchEvent(FlowID.TestUI));
 
-        // 设置游戏世界
+        // 设置世界
         var gameWorldService = _services.Get<IGameWorldService>();
         gameWorldService.SetCurrentWorld();
 
-        // 设置相机
+        // 获取相机
         var cameraService = _services.Get<ICameraService>();
-        var cameraControlRig = new JustEntryCameraControlRig(cameraService.CameraRoot);
 
-        // 切换到 rig
+        // 获取控制器
         var controlService = _services.Get<IControlService>();
-        controlService.SwitchCameraControlRig(cameraControlRig);
+
+        // 设置相机控制器
+        controlService.CameraControlRig = new JustEntryCameraControlRig(cameraService);
+        controlService.SwitchCameraControlRig(controlService.CameraControlRig);
+
+        //controlService.SwitchCameraControlRig(cameraControlRig);
     }
 }

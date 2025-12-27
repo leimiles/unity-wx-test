@@ -5,22 +5,19 @@ using System;
 
 public interface IControlService
 {
-    ICameraControlRig CameraControlRig { get; }
+    /// <summary>
+    /// control service 必须有 camera control rig，但是不关心什么事 camera control rig
+    /// </summary>
+    ICameraControlRig CameraControlRig { get; set; }
     void SwitchCameraControlRig(ICameraControlRig cameraControlRig);
 }
 
 public class ControlService : IControlService
 {
-    public ICameraControlRig CameraControlRig => _cameraControlRig;
-    readonly ICameraService _cameraService;
-    ICameraControlRig _cameraControlRig;
-    public ControlService(ICameraService cameraService)
-    {
-        _cameraService = cameraService ?? throw new ArgumentNullException(nameof(cameraService));
-    }
-
+    public ICameraControlRig CameraControlRig { get; set; }
     public void SwitchCameraControlRig(ICameraControlRig cameraControlRig)
     {
-        _cameraControlRig = cameraControlRig ?? throw new ArgumentNullException(nameof(cameraControlRig));
+        Debug.Log($"[ControlService] switch camera control rig: {cameraControlRig}");
+        CameraControlRig = cameraControlRig ?? throw new ArgumentNullException(nameof(cameraControlRig));
     }
 }

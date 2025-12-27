@@ -10,25 +10,12 @@ public class ControlSubSystem : ISubSystem
     public bool IsRequired => true;
     public bool IsReady => _controlService != null;
     public bool IsInstalled => _installed;
-    IControlService _controlService;
     bool _installed = false;
-    readonly IGameServices _gameServices;
-    public ControlSubSystem(IGameServices gameServices)
-    {
-        if (gameServices == null)
-        {
-            throw new ArgumentNullException(nameof(gameServices));
-        }
-        _gameServices = gameServices ?? throw new ArgumentNullException(nameof(gameServices));
-    }
+    IControlService _controlService;
+
     public UniTask InitializeAsync(IProgress<float> progress)
     {
-        var cameraService = _gameServices.Get<ICameraService>();
-        if (cameraService == null)
-        {
-            throw new InvalidOperationException("CameraService is not initialized before InitializeAsync");
-        }
-        _controlService = new ControlService(cameraService);
+        _controlService = new ControlService();
         progress?.Report(1f);
         return UniTask.CompletedTask;
     }
