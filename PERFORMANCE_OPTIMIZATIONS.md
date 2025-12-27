@@ -46,11 +46,14 @@ The optimizations focus on reducing allocations, minimizing lock contention, cac
 
 **Solution**:
 - Added `_boneTransformCache` field to store the Transform array
-- Reused the same field reference instead of allocating new arrays
+- Added `_lastBonesRoot` to track which root the cache is for
+- Only calls `GetComponentsInChildren<Transform>()` when the root bone changes
+- Reuses cached array when verifying the same bone root multiple times
 
 **Impact**:
 - Reduced memory allocations during bone verification
-- Faster bone system initialization
+- Faster bone system re-verification for the same character
+- Cache automatically invalidates when switching to different bone roots
 
 **Code Location**: `Assets/Runtime/ModularsCharacter/ModularBoneSystem.cs`
 
