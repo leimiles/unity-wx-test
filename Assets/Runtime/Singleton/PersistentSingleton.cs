@@ -8,7 +8,7 @@ namespace MilesUtils
         public bool AutoUnparentOnAwake = true;
 
         protected static T instance;
-        private static readonly object _lock = new object();
+        private static readonly object _lock = new();
         private static bool applicationIsQuitting = false;
 
         public static bool HasInstance => instance != null;

@@ -103,19 +103,20 @@ public sealed class YooService : IYooService
         settings = yooSettings != null ? yooSettings : throw new ArgumentNullException(nameof(yooSettings));
     }
 
-    public UniTask InitializeAsync(IProgress<float> progress)
+    public UniTask InitializeAsync0(IProgress<float> progress)
     {
-        if (_isInitialized)
-        {
-            progress?.Report(1.0f);
-            return UniTask.CompletedTask;
-        }
-
         UniTaskCompletionSource tcs;
         bool needStart = false;
 
         lock (_initGate)
         {
+            // 在锁内检查初始化状态，避免竞态条件
+            if (_isInitialized)
+            {
+                progress?.Report(1.0f);
+                return UniTask.CompletedTask;
+            }
+
             if (_initTcs == null)
             {
                 _initTcs = new UniTaskCompletionSource();
@@ -127,6 +128,45 @@ public sealed class YooService : IYooService
         if (needStart)
         {
             RunInitialize(progress).Forget();
+        }
+        else
+        {
+            // 对于等待中的调用者，通知进度为 0（初始化已在进行中）
+            progress?.Report(0f);
+        }
+
+        return tcs.Task;
+    }
+    public UniTask InitializeAsync(IProgress<float> progress)
+    {
+        UniTaskCompletionSource tcs;
+        bool needStart = false;
+
+        lock (_initGate)
+        {
+            // 在锁内检查初始化状态，避免竞态条件
+            if (_isInitialized)
+            {
+                progress?.Report(1.0f);
+                return UniTask.CompletedTask;
+            }
+
+            if (_initTcs == null)
+            {
+                _initTcs = new UniTaskCompletionSource();
+                needStart = true;
+            }
+            tcs = _initTcs;
+        }
+
+        if (needStart)
+        {
+            RunInitialize(progress).Forget();
+        }
+        else
+        {
+            // 对于等待中的调用者，通知进度为 0（初始化已在进行中）
+            progress?.Report(0f);
         }
 
         return tcs.Task;

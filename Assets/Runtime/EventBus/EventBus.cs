@@ -27,7 +27,7 @@ public static class EventBus<T>
         }
     }
 
-    public static void Raise(T @event)
+    public static void Raise0(T @event)
     {
         IEventBinding<T>[] snapshot = null;
         int count = 0;
@@ -39,6 +39,54 @@ public static class EventBus<T>
 
             snapshot = _bindingPool.Rent(count);
             bindings.CopyTo(snapshot);
+        }
+
+        try
+        {
+            // 在锁外迭代快照，避免在回调执行期间持有锁
+            for (int i = 0; i < count; i++)
+            {
+                var binding = snapshot[i];
+                try
+                {
+                    binding.OnEvent?.Invoke(@event);
+                    binding.OnEventNoArgs?.Invoke();
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogError($"[EventBus] Exception in event handler for {typeof(T).Name}: {ex.Message}");
+                }
+            }
+        }
+        finally
+        {
+            if (snapshot != null)
+            {
+                // 清理数组内容（只清理使用的部分）
+                System.Array.Clear(snapshot, 0, count);
+                _bindingPool.Return(snapshot);
+            }
+        }
+    }
+    public static void Raise(T @event)
+    {
+        IEventBinding<T>[] snapshot = null;
+        int count = 0;
+
+        lock (bindingsLock)
+        {
+            count = bindings.Count;
+            if (count == 0) return;
+
+            snapshot = _bindingPool.Rent(count);
+
+            // 手动复制，避免 CopyTo 在数组长度不足时抛异常
+            // 虽然 ArrayPool.Rent 保证长度 >= count，但手动复制更明确
+            int index = 0;
+            foreach (var binding in bindings)
+            {
+                snapshot[index++] = binding;
+            }
         }
 
         try

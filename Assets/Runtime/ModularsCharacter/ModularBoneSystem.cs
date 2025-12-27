@@ -7,6 +7,10 @@ using UnityEngine;
 /// </summary>
 public class ModularBoneSystem
 {
+    // 性能优化：缓存最后一次查询的根骨骼和对应的 Transform 数组
+    // 注意：这个缓存在更换角色骨骼根时会自动失效
+    private Transform _lastBonesRoot;
+    private Transform[] _boneTransformCache;
     /// <summary>
     /// 验证并初始化骨骼映射
     /// </summary>
@@ -31,8 +35,15 @@ public class ModularBoneSystem
         modularChar.InternalBonesMap.Clear();
         modularChar.InternalOriginalBonesMap.Clear();
 
+        // 性能优化：只有在根骨骼改变时才重新获取 Transform 数组
+        if (_lastBonesRoot != modularChar.BaseBonesRoot)
+        {
+            _boneTransformCache = modularChar.BaseBonesRoot.GetComponentsInChildren<Transform>();
+            _lastBonesRoot = modularChar.BaseBonesRoot;
+        }
+
         // 遍历所有子骨骼
-        foreach (var bone in modularChar.BaseBonesRoot.GetComponentsInChildren<Transform>())
+        foreach (var bone in _boneTransformCache)
         {
             modularChar.InternalBonesMap[bone.name] = bone;
             modularChar.InternalOriginalBonesMap[bone.name] = bone; // 保存原始引用

@@ -9,6 +9,8 @@ using System.Reflection;
 /// </summary>
 public static class PredefinedAssemblyUtil
 {
+    private static readonly Lazy<Dictionary<AssemblyType, Type[]>> _cachedAssemblyTypes =
+        new Lazy<Dictionary<AssemblyType, Type[]>>(BuildAssemblyTypeCache);
     /// <summary>
     /// Enum that defines the specific predefined types of assemblies for navigation.
     /// </summary>
@@ -68,10 +70,24 @@ public static class PredefinedAssemblyUtil
     /// <returns>List of Types implementing the provided interface type.</returns>
     public static List<Type> GetTypes(Type interfaceType)
     {
-        Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
-
-        Dictionary<AssemblyType, Type[]> assemblyTypes = new Dictionary<AssemblyType, Type[]>();
         List<Type> types = new List<Type>();
+
+        _cachedAssemblyTypes.Value.TryGetValue(AssemblyType.AssemblyCSharp, out var assemblyCSharpTypes);
+        AddTypesFromAssembly(assemblyCSharpTypes, interfaceType, types);
+
+        _cachedAssemblyTypes.Value.TryGetValue(
+            AssemblyType.AssemblyCSharpFirstPass,
+            out var assemblyCSharpFirstPassTypes
+        );
+        AddTypesFromAssembly(assemblyCSharpFirstPassTypes, interfaceType, types);
+
+        return types;
+    }
+
+    private static Dictionary<AssemblyType, Type[]> BuildAssemblyTypeCache()
+    {
+        Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+        Dictionary<AssemblyType, Type[]> assemblyTypes = new Dictionary<AssemblyType, Type[]>();
         for (int i = 0; i < assemblies.Length; i++)
         {
             AssemblyType? assemblyType = GetAssemblyType(assemblies[i].GetName().Name);
@@ -80,16 +96,6 @@ public static class PredefinedAssemblyUtil
                 assemblyTypes.Add((AssemblyType)assemblyType, assemblies[i].GetTypes());
             }
         }
-
-        assemblyTypes.TryGetValue(AssemblyType.AssemblyCSharp, out var assemblyCSharpTypes);
-        AddTypesFromAssembly(assemblyCSharpTypes, interfaceType, types);
-
-        assemblyTypes.TryGetValue(
-            AssemblyType.AssemblyCSharpFirstPass,
-            out var assemblyCSharpFirstPassTypes
-        );
-        AddTypesFromAssembly(assemblyCSharpFirstPassTypes, interfaceType, types);
-
-        return types;
+        return assemblyTypes;
     }
 }
