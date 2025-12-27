@@ -1,26 +1,31 @@
 using UnityEngine;
 using System;
 
-public interface ICameraControlRig : IControlRig
+public interface ICameraControlRig
 {
-    Transform CameraRoot { get; }
+    void Attach(Transform cameraRoot);
+    void Detach();
+    void ApplyWorld(IGameWorld world);
 }
 
 public class JustEntryCameraControlRig : ICameraControlRig
 {
-    public Transform CameraRoot => _cameraRoot;
-    readonly Transform _cameraRoot;
-    public bool IsAttached => _isAttached;
-    bool _isAttached = false;
-    public JustEntryCameraControlRig(ICameraService cameraService)
+    Transform cameraRoot;
+    public void Attach(Transform cameraRoot)
     {
-        Debug.Log($"[JustEntryCameraControlRig] new instance with camera root: {cameraService.CameraRoot}");
-        var cameraRoot = cameraService.CameraRoot;
-        if (cameraRoot == null)
-        {
-            throw new ArgumentNullException(nameof(cameraRoot));
-        }
-        _cameraRoot = cameraRoot;
-        _isAttached = true;
+        this.cameraRoot = cameraRoot;
+        Debug.Log($"[JustEntryCameraControlRig] attach with camera root: {cameraRoot.name}");
+    }
+
+    public void Detach()
+    {
+        Debug.Log($"[JustEntryCameraControlRig] detach");
+        cameraRoot = null;
+    }
+
+    public void ApplyWorld(IGameWorld world)
+    {
+        Debug.Log($"[JustEntryCameraControlRig] apply world: {world.Name}");
+        cameraRoot.transform.SetPositionAndRotation(world.StartPosition.position, world.StartPosition.rotation);
     }
 }

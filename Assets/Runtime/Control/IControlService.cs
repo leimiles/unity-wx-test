@@ -3,19 +3,23 @@ using System;
 
 public interface IControlService
 {
-    /// <summary>
-    /// control service 必须有 camera control rig，但是不关心什么事 camera control rig
-    /// </summary>
-    ICameraControlRig CameraControlRig { get; set; }
-    void SwitchCameraControlRig(ICameraControlRig cameraControlRig);
+    void OnWorldReady(IGameWorld world);
 }
 
 public class ControlService : IControlService
 {
-    public ICameraControlRig CameraControlRig { get; set; }
-    public void SwitchCameraControlRig(ICameraControlRig cameraControlRig)
+    readonly Transform _cameraRoot;
+    ICameraControlRig _currentRig;
+    public ControlService(Transform cameraRoot)
     {
-        Debug.Log($"[ControlService] switch camera control rig: {cameraControlRig}");
-        CameraControlRig = cameraControlRig ?? throw new ArgumentNullException(nameof(cameraControlRig));
+        _cameraRoot = cameraRoot ?? throw new ArgumentNullException(nameof(cameraRoot));
+        _currentRig = new JustEntryCameraControlRig();
+    }
+
+    public void OnWorldReady(IGameWorld world)
+    {
+        _currentRig.Detach();
+        _currentRig.Attach(_cameraRoot);
+        _currentRig.ApplyWorld(world);
     }
 }

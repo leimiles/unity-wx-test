@@ -10,10 +10,16 @@ public class ControlSubSystem : ISubSystem
     public bool IsInstalled => _installed;
     bool _installed = false;
     IControlService _controlService;
+    readonly IGameServices _services;
 
+    public ControlSubSystem(IGameServices services)
+    {
+        _services = services ?? throw new ArgumentNullException(nameof(services));
+    }
     public UniTask InitializeAsync(IProgress<float> progress)
     {
-        _controlService = new ControlService();
+        var cameraService = _services.Get<ICameraService>();
+        _controlService = new ControlService(cameraService.CameraRoot);
         progress?.Report(1f);
         return UniTask.CompletedTask;
     }
