@@ -16,9 +16,20 @@ public class ControlSubSystem : ISubSystem
     {
         _services = services ?? throw new ArgumentNullException(nameof(services));
     }
+
     public UniTask InitializeAsync(IProgress<float> progress)
     {
         var cameraService = _services.Get<ICameraService>();
+        if (cameraService == null)
+        {
+            throw new InvalidOperationException("CameraService not found in services");
+        }
+
+        if (cameraService.CameraRoot == null)
+        {
+            throw new InvalidOperationException("CameraRoot is null");
+        }
+
         _controlService = new ControlService(cameraService.CameraRoot);
         progress?.Report(1f);
         return UniTask.CompletedTask;
@@ -34,9 +45,15 @@ public class ControlSubSystem : ISubSystem
         services.Register<IControlService>(_controlService);
         _installed = true;
     }
+
     public void Dispose()
     {
-        // 如果需要清理，在这里实现
+        if (_controlService is IDisposable disposable)
+        {
+            disposable.Dispose();
+        }
+        _controlService = null;
+        _installed = false;
     }
 }
 

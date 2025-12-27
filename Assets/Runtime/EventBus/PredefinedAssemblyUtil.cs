@@ -53,7 +53,9 @@ public static class PredefinedAssemblyUtil
     {
         if (assemblyTypes == null)
             return;
-        for (int i = 0; i < assemblyTypes.Length; i++)
+
+        int length = assemblyTypes.Length;  // 缓存长度，避免重复访问
+        for (int i = 0; i < length; i++)
         {
             Type type = assemblyTypes[i];
             if (type != interfaceType && interfaceType.IsAssignableFrom(type))

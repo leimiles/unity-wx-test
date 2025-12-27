@@ -9,8 +9,7 @@ namespace MilesUtils
 
         protected static T instance;
         private static readonly object _lock = new();
-        private static bool applicationIsQuitting = false;
-
+        private static volatile bool applicationIsQuitting = false;  // 使用 volatile
         public static bool HasInstance => instance != null;
 
         public static T TryGetInstance() => HasInstance ? instance : null;
@@ -54,9 +53,6 @@ namespace MilesUtils
             }
         }
 
-        /// <summary>
-        /// Make sure to call base.Awake() in override if you need awake.
-        /// </summary>
         protected virtual void Awake()
         {
             InitializeSingleton();
@@ -88,8 +84,8 @@ namespace MilesUtils
 
         protected virtual void OnDestroy()
         {
-            // 清理静态引用，防止访问已销毁的对象
-            if (instance == this)
+            // 只在非退出状态下清理引用
+            if (!applicationIsQuitting && instance == this)
             {
                 instance = null;
             }

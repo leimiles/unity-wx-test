@@ -41,7 +41,11 @@ public class CameraSubSystem : ISubSystem
 
     public void Dispose()
     {
-        // 如果需要清理，在这里实现
-        // 如果 CameraService 实现了 IDisposable，应该在这里调用
+        if (_cameraService is IDisposable disposable)
+        {
+            disposable.Dispose();
+        }
+        _cameraService = null;
+        _installed = false;
     }
 }

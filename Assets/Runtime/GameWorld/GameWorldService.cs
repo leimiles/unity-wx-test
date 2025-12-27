@@ -1,6 +1,8 @@
 using UnityEngine;
 using System;
 using Cysharp.Threading.Tasks;
+using System.Text;
+
 public interface IGameWorldService
 {
     bool HasWorld { get; }
@@ -12,7 +14,7 @@ public interface IGameWorldService
 
 public class GameWorldService : IGameWorldService
 {
-    private const string GameWorldTag = "GameWorld";
+    public const string GameWorldTag = "GameWorld";  // 改为 public const
     public bool HasWorld => _currentWorld != null;
     IGameWorld _currentWorld;
     public IGameWorld CurrentWorld => _currentWorld;
@@ -35,17 +37,17 @@ public class GameWorldService : IGameWorldService
 
         if (gos.Length > 1)
         {
-            var names = "";
+            // 使用 StringBuilder 避免字符串拼接的 GC
+            var sb = new StringBuilder();
             for (int i = 0; i < gos.Length; i++)
             {
-                if (i > 0) names += ", ";
-                names += gos[i].name;
+                if (i > 0) sb.Append(", ");
+                sb.Append(gos[i].name);
             }
 
             throw new InvalidOperationException(
-                $"[GameWorldService] Multiple GameWorld objects found (tag='{GameWorldTag}'): {gos.Length}. Objects: {names}");
+                $"[GameWorldService] Multiple GameWorld objects found (tag='{GameWorldTag}'): {gos.Length}. Objects: {sb}");
         }
-
 
         var go = gos[0];
 

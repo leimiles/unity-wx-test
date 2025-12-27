@@ -452,7 +452,7 @@ public sealed class YooService : IYooService
     /// <summary>
     /// 异步加载资源（UniTask 方式，带引用计数机制）
     /// </summary>
-    public async UniTask<T> LoadAssetAsync<T>(string address) where T : UnityEngine.Object
+    public async UniTask<T> LoadAssetAsync0<T>(string address) where T : UnityEngine.Object
     {
         if (!_isInitialized || currentPackage == null)
             throw new InvalidOperationException($"[YooService] Not ready. IsInitialized={_isInitialized}, address={address}");
@@ -537,6 +537,107 @@ public sealed class YooService : IYooService
             }
 
             throw new Exception($"资源加载失败: {address} - {error}");
+        }
+    }
+
+    public async UniTask<T> LoadAssetAsync<T>(string address) where T : UnityEngine.Object
+    {
+        if (!_isInitialized || currentPackage == null)
+            throw new InvalidOperationException($"[YooService] Not ready. IsInitialized={_isInitialized}, address={address}");
+
+        AssetKey key = new AssetKey(address, typeof(T));
+        AssetHandleInfo handleInfo = null;
+        bool shouldWaitForLoad = false;
+
+        // 第一阶段：检查或创建句柄
+        await _handlesSemaphore.WaitAsync();
+        try
+        {
+            if (activeHandles.TryGetValue(key, out var existingHandleInfo))
+            {
+                // 资源已在加载或已加载
+                handleInfo = existingHandleInfo;
+                handleInfo.RefCount++;
+                shouldWaitForLoad = true;
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                Debug.Log($"[YooService] 资源已加载，引用计数: {handleInfo.RefCount}: {address}");
+#endif
+            }
+            else
+            {
+                // 创建新句柄
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                Debug.Log($"[YooService] 开始异步加载资源: {address}");
+#endif
+
+                var handle = currentPackage.LoadAssetAsync<T>(address);
+                handleInfo = new AssetHandleInfo(handle);
+                activeHandles[key] = handleInfo;
+                shouldWaitForLoad = true;
+            }
+        }
+        finally
+        {
+            _handlesSemaphore.Release();
+        }
+
+        // 第二阶段：等待加载完成（在锁外）
+        if (shouldWaitForLoad)
+        {
+            await handleInfo.Handle.ToUniTask();
+        }
+
+        // 第三阶段：检查结果
+        if (handleInfo.Handle.Status == EOperationStatus.Succeed)
+        {
+            var asset = handleInfo.Handle.AssetObject as T;
+            if (asset == null)
+            {
+                // 类型转换失败，需要回滚
+                await RollbackFailedLoad(key, handleInfo);
+                throw new InvalidCastException($"Asset '{address}' is not of type {typeof(T).Name}");
+            }
+            return asset;
+        }
+        else
+        {
+            // 加载失败，回滚
+            string error = handleInfo.Handle.LastError;
+            await RollbackFailedLoad(key, handleInfo);
+            throw new Exception($"资源加载失败: {address} - {error}");
+        }
+    }
+
+    // 辅助方法：回滚失败的加载
+    private async UniTask RollbackFailedLoad(AssetKey key, AssetHandleInfo handleInfo)
+    {
+        await _handlesSemaphore.WaitAsync();
+        try
+        {
+            if (activeHandles.TryGetValue(key, out var info) && info == handleInfo)
+            {
+                info.RefCount--;
+                if (info.RefCount <= 0)
+                {
+                    info.Handle.Release();
+                    activeHandles.Remove(key);
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                    Debug.Log($"[YooService] 加载失败，已清理资源: {key.Address}");
+#endif
+                }
+                else
+                {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                    Debug.Log($"[YooService] 加载失败，回滚引用计数: {info.RefCount}: {key.Address}");
+#endif
+                }
+            }
+        }
+        finally
+        {
+            _handlesSemaphore.Release();
         }
     }
 

@@ -15,6 +15,8 @@ public class CameraService : ICameraService
     public Transform CameraRoot => _cameraRoot;
     readonly Camera _mainCamera;
     readonly Transform _cameraRoot;
+    bool _disposed = false;
+
     public CameraService(Camera mainCamera)
     {
         _mainCamera = mainCamera != null ? mainCamera : throw new InvalidOperationException("Main camera not found");
@@ -31,6 +33,18 @@ public class CameraService : ICameraService
 
     void ResetCamera(Camera camera)
     {
-        camera.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+        camera.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
+    }
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+
+        if (_cameraRoot != null)
+        {
+            UnityEngine.Object.Destroy(_cameraRoot.gameObject);
+        }
+
+        _disposed = true;
     }
 }

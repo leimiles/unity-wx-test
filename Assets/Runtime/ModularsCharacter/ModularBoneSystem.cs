@@ -181,15 +181,21 @@ public class ModularBoneSystem
     /// <summary>
     /// 在基准骨骼映射中，找到当前骨骼的父节点，并设置当前骨骼的父节点
     /// </summary>
-    private void FindAndSetParentInBoneMap(Transform bone, Dictionary<string, Transform> bonesMap)
+    private void FindAndSetParentInBoneMap(Transform bone, Dictionary<string, Transform> bonesMap, int maxDepth = 50)
     {
+        if (maxDepth <= 0)
+        {
+            Debug.LogWarning($"[ModularBoneSystem] 递归深度达到上限，停止查找父节点: {bone.name}");
+            return;
+        }
+
         Transform parent = bone.parent;
         if (parent == null) return;
 
         // 如果父节点不在映射中，递归处理父节点
         if (!bonesMap.ContainsKey(parent.name))
         {
-            FindAndSetParentInBoneMap(parent, bonesMap);
+            FindAndSetParentInBoneMap(parent, bonesMap, maxDepth - 1);
             // 递归返回后，将父节点添加到映射
             bonesMap[parent.name] = parent;
         }
