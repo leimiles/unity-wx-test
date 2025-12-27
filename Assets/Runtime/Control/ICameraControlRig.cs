@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using System;
 
@@ -16,7 +14,7 @@ public class JustEntryCameraControlRig : ICameraControlRig
     bool _isAttached = false;
     public JustEntryCameraControlRig(ICameraService cameraService)
     {
-        Debug.Log($"[JustEntryCameraControlRig] new instance: {cameraService.CameraRoot}");
+        Debug.Log($"[JustEntryCameraControlRig] new instance with camera root: {cameraService.CameraRoot}");
         var cameraRoot = cameraService.CameraRoot;
         if (cameraRoot == null)
         {
