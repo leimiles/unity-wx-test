@@ -8,8 +8,3 @@ public interface IGameWorld
     public string Name { get; }
     public Transform StartPosition { get; }
 }
-
-public struct GameWorldEnterEvent : IEvent
-{
-    public string gameWorldName;
-}
